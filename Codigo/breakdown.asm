@@ -5,14 +5,15 @@
     ; Configuración del juego
     ANCHO EQU 80
     ALTO EQU 25
-    BLOQUES_FILAS EQU 15
-    BLOQUES_COLS EQU 25
-    TOTAL_BLOQUES EQU 375    ; 15 * 25
+    BLOQUES_FILAS EQU 8
+    BLOQUES_COLS EQU 20
+    TOTAL_BLOQUES EQU 160
     
     ; Paleta
-    paleta_x DB 37          
+    paleta_x DB 35          
     paleta_y DB 23          
-    paleta_ancho DB 7      
+    paleta_x_anterior DB 35
+    paleta_ancho DB 10      
     
     ; Pelota
     pelota_x DB 40          
@@ -20,12 +21,10 @@
     pelota_dx DB 1                 
     pelota_dy DB 255        ; -1 
     
-    ; Bloques (375 bloques = 15 filas x 25 columnas)
-    bloques DB 375 DUP(1)    
-    bloques_restantes DW 375
-    
-    ; Velocidad del juego
-    velocidad DW 1000h
+    ; Bloques
+    bloques DB 160 DUP(1)    
+    bloques_restantes DW 160
+    puntos DW 0
     
     ; Mensajes del menú
     titulo1 DB '  ____  ____  _____    _    _  _____  _   _ _____ $'
@@ -48,8 +47,9 @@
     inst_linea5 DB '   Presiona cualquier tecla para volver...$'
     
     ; Mensajes del juego
-    msg_perdiste DB '      PERDISTE! Presiona ENTER para menu$'
-    msg_ganaste DB '      GANASTE! Presiona ENTER para menu$'
+    msg_perdiste DB 'PERDISTE! Presiona ENTER para menu$'
+    msg_ganaste DB 'GANASTE! Presiona ENTER para menu$'
+    msg_puntos DB 'Puntos: $'
     
     juego_activo DB 1
     frame_counter DB 0
@@ -59,14 +59,12 @@ MAIN PROC
     MOV AX, @DATA
     MOV DS, AX
     
-    ; Ocultar cursor
     CALL OCULTAR_CURSOR
     
 MOSTRAR_MENU:
     CALL LIMPIAR_PANTALLA
     CALL DIBUJAR_MENU
     
-    ; Leer opción
     MOV AH, 00h
     INT 16h
     
@@ -83,7 +81,6 @@ MOSTRAR_INSTRUCCIONES:
     CALL LIMPIAR_PANTALLA
     CALL DIBUJAR_INSTRUCCIONES
     
-    ; Esperar tecla
     MOV AH, 00h
     INT 16h
     JMP MOSTRAR_MENU
@@ -91,22 +88,21 @@ MOSTRAR_INSTRUCCIONES:
 INICIAR_JUEGO:
     CALL REINICIAR_JUEGO
     CALL LIMPIAR_PANTALLA
+    CALL DIBUJAR_CAMPO_INICIAL
     
 GAME_LOOP:
     MOV AL, juego_activo
     CMP AL, 0
     JE FIN_JUEGO
     
-    ; Dibujar escena completa
-    CALL DIBUJAR_MARCO
-    CALL DIBUJAR_BLOQUES
+    CALL MOSTRAR_INFO
+    CALL BORRAR_PALETA_ANTERIOR
     CALL DIBUJAR_PALETA
     CALL DIBUJAR_PELOTA
     
-    ; Control de velocidad
     CALL DELAY_GAME
     
-    ; Leer tecla sin esperar
+    ; Leer tecla
     MOV AH, 01h
     INT 16h
     JZ NO_TECLA
@@ -127,7 +123,8 @@ VOLVER_MENU:
     
 MOVER_IZQ:
     MOV AL, paleta_x
-    CMP AL, 2
+    MOV paleta_x_anterior, AL
+    CMP AL, 1
     JLE NO_TECLA
     DEC AL
     MOV paleta_x, AL
@@ -135,29 +132,30 @@ MOVER_IZQ:
     
 MOVER_DER:
     MOV AL, paleta_x
+    MOV paleta_x_anterior, AL
     MOV BL, paleta_ancho
     ADD AL, BL
-    CMP AL, 78
+    CMP AL, 79
     JGE NO_TECLA
     MOV AL, paleta_x
     INC AL
     MOV paleta_x, AL
     
 NO_TECLA:
-    ; Actualizar física cada 2 frames
     INC frame_counter
     MOV AL, frame_counter
     AND AL, 01h
     JNZ GAME_LOOP
     
+    CALL BORRAR_PELOTA
     CALL MOVER_PELOTA
     JMP GAME_LOOP
     
 FIN_JUEGO:
     CALL LIMPIAR_PANTALLA
     
-    MOV DH, 12
-    MOV DL, 15
+    MOV DH, 10
+    MOV DL, 20
     CALL MOVER_CURSOR
     
     MOV AX, bloques_restantes
@@ -174,10 +172,19 @@ MOSTRAR_MSG:
     MOV AH, 09h
     INT 21h
     
+    ; Mostrar puntos finales
+    MOV DH, 12
+    MOV DL, 25
+    CALL MOVER_CURSOR
+    LEA DX, msg_puntos
+    MOV AH, 09h
+    INT 21h
+    CALL IMPRIMIR_NUMERO
+    
 ESPERAR_ENTER:
     MOV AH, 00h
     INT 16h
-    CMP AL, 13          ; ENTER
+    CMP AL, 13
     JNE ESPERAR_ENTER
     
     JMP MOSTRAR_MENU
@@ -213,7 +220,6 @@ MOSTRAR_CURSOR ENDP
 DIBUJAR_MENU PROC
     PUSH DX
     
-    ; Título
     MOV DH, 5
     MOV DL, 10
     CALL MOVER_CURSOR
@@ -249,7 +255,6 @@ DIBUJAR_MENU PROC
     MOV AH, 09h
     INT 21h
     
-    ; Opciones
     MOV DH, 13
     MOV DL, 20
     CALL MOVER_CURSOR
@@ -331,23 +336,112 @@ DIBUJAR_INSTRUCCIONES PROC
     RET
 DIBUJAR_INSTRUCCIONES ENDP
 
+DIBUJAR_CAMPO_INICIAL PROC
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    
+    ; Dibujar borde superior decorativo
+    MOV DH, 0
+    MOV DL, 0
+    MOV CX, 80
+BORDE_SUP:
+    CALL MOVER_CURSOR
+    MOV AH, 02h
+    MOV DL, 219  ; Bloque sólido
+    INT 21h
+    INC DL
+    LOOP BORDE_SUP
+    
+    ; Dibujar bloques
+    CALL DIBUJAR_BLOQUES
+    
+    POP DX
+    POP CX
+    POP BX
+    POP AX
+    RET
+DIBUJAR_CAMPO_INICIAL ENDP
+
+MOSTRAR_INFO PROC
+    PUSH AX
+    PUSH DX
+    
+    ; Mostrar puntos en la última línea
+    MOV DH, 24
+    MOV DL, 2
+    CALL MOVER_CURSOR
+    LEA DX, msg_puntos
+    MOV AH, 09h
+    INT 21h
+    CALL IMPRIMIR_NUMERO
+    
+    ; Mostrar bloques restantes
+    MOV DH, 24
+    MOV DL, 20
+    CALL MOVER_CURSOR
+    MOV AH, 02h
+    MOV DL, 'B'
+    INT 21h
+    MOV DL, ':'
+    INT 21h
+    
+    MOV AX, bloques_restantes
+    CALL IMPRIMIR_NUMERO
+    
+    POP DX
+    POP AX
+    RET
+MOSTRAR_INFO ENDP
+
+IMPRIMIR_NUMERO PROC
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    
+    MOV AX, puntos
+    MOV CX, 0
+    MOV BX, 10
+    
+DIVIDIR:
+    XOR DX, DX
+    DIV BX
+    PUSH DX
+    INC CX
+    CMP AX, 0
+    JNE DIVIDIR
+    
+IMPRIMIR_DIGITOS:
+    POP DX
+    ADD DL, '0'
+    MOV AH, 02h
+    INT 21h
+    LOOP IMPRIMIR_DIGITOS
+    
+    POP DX
+    POP CX
+    POP BX
+    POP AX
+    RET
+IMPRIMIR_NUMERO ENDP
+
 REINICIAR_JUEGO PROC
     PUSH AX
     PUSH BX
     PUSH CX
     
-    ; Reiniciar paleta (centrada)
-    MOV paleta_x, 37
+    MOV paleta_x, 35
+    MOV paleta_x_anterior, 35
     MOV paleta_y, 23
     
-    ; Reiniciar pelota
     MOV pelota_x, 40
     MOV pelota_y, 18
     MOV pelota_dx, 1
     MOV pelota_dy, 255
     
-    ; Reiniciar bloques
-    MOV CX, 375
+    MOV CX, 160
     XOR BX, BX
     
 REINICIAR_BLOQUES_LOOP:
@@ -355,7 +449,8 @@ REINICIAR_BLOQUES_LOOP:
     INC BX
     LOOP REINICIAR_BLOQUES_LOOP
     
-    MOV bloques_restantes, 375
+    MOV bloques_restantes, 160
+    MOV puntos, 0
     MOV juego_activo, 1
     MOV frame_counter, 0
     
@@ -385,71 +480,67 @@ MOVER_CURSOR PROC
     RET
 MOVER_CURSOR ENDP
 
-DIBUJAR_MARCO PROC
-    PUSH AX
-    PUSH CX
-    PUSH DX
-    
-    ; Línea superior
-    MOV DH, 0
-    MOV DL, 0
-    MOV CX, 80
-MARCO_SUP:
-    CALL MOVER_CURSOR
-    MOV AH, 02h
-    MOV DL, '-'
-    INT 21h
-    INC DL
-    LOOP MARCO_SUP
-    
-    POP DX
-    POP CX
-    POP AX
-    RET
-DIBUJAR_MARCO ENDP
-
 DIBUJAR_BLOQUES PROC
     PUSH AX
     PUSH BX
     PUSH CX
     PUSH DX
+    PUSH SI
     
-    XOR BX, BX          
-    MOV DH, 2           
+    XOR BX, BX
+    MOV DH, 2
     
 FILA_BLOQUES:
-    CMP DH, 17          ; 15 filas (2 a 16)
+    CMP DH, 10
     JGE FIN_DIBUJAR_BLOQUES
     
-    MOV DL, 2           
-    MOV CL, 0           
+    MOV DL, 2
+    MOV CL, 0
     
 COLUMNA_BLOQUES:
-    CMP CL, 25          ; 25 columnas
+    CMP CL, 20
     JGE SIGUIENTE_FILA_BLOQUES
     
     MOV AL, bloques[BX]
     CMP AL, 0
     JE SALTAR_BLOQUE
     
+    ; Guardar registros importantes
+    PUSH BX
     PUSH CX
+    PUSH DX
+    
+    ; Posicionar cursor
     CALL MOVER_CURSOR
+    
+    ; Dibujar 3 caracteres del bloque
     MOV AH, 02h
-    MOV DL, '#'
+    MOV DL, 178  ; Bloque medio
     INT 21h
+    MOV DL, 177  ; Bloque ligero
+    INT 21h
+    MOV DL, 178
+    INT 21h
+    
+    ; Restaurar registros
+    POP DX
     POP CX
+    POP BX
     
 SALTAR_BLOQUE:
     INC BX
     INC CL
-    ADD DL, 3           ; Espaciado de 3 caracteres
-    JMP COLUMNA_BLOQUES
+    ADD DL, 4
+    CMP CL, 20
+    JL COLUMNA_BLOQUES
     
 SIGUIENTE_FILA_BLOQUES:
     INC DH
-    JMP FILA_BLOQUES
+    CMP DH, 10
+    JL FILA_BLOQUES
     
 FIN_DIBUJAR_BLOQUES:
+    POP SI
     POP DX
     POP CX
     POP BX
@@ -467,18 +558,20 @@ DIBUJAR_PALETA PROC
     XOR CH, CH
     MOV CL, paleta_ancho
     
-LOOP_PALETA:
-    PUSH CX
-    PUSH DX
     CALL MOVER_CURSOR
     MOV AH, 02h
-    MOV DL, '='
+    MOV DL, 220  ; Borde superior
     INT 21h
-    POP DX
-    POP CX
     
-    INC DL
+LOOP_PALETA:
+    MOV AH, 02h
+    MOV DL, 223  ; Borde inferior
+    INT 21h
     LOOP LOOP_PALETA
+    
+    MOV AH, 02h
+    MOV DL, 220
+    INT 21h
     
     POP DX
     POP CX
@@ -486,40 +579,88 @@ LOOP_PALETA:
     RET
 DIBUJAR_PALETA ENDP
 
+BORRAR_PALETA_ANTERIOR PROC
+    PUSH AX
+    PUSH CX
+    PUSH DX
+    
+    MOV DH, paleta_y
+    MOV DL, paleta_x_anterior
+    XOR CH, CH
+    MOV CL, paleta_ancho
+    ADD CL, 2
+    
+LOOP_BORRAR_PALETA:
+    PUSH CX
+    PUSH DX
+    CALL MOVER_CURSOR
+    MOV AH, 02h
+    MOV DL, ' '
+    INT 21h
+    POP DX
+    POP CX
+    
+    INC DL
+    LOOP LOOP_BORRAR_PALETA
+    
+    POP DX
+    POP CX
+    POP AX
+    RET
+BORRAR_PALETA_ANTERIOR ENDP
+
 DIBUJAR_PELOTA PROC
+    PUSH AX
     PUSH DX
     MOV DH, pelota_y
     MOV DL, pelota_x
     CALL MOVER_CURSOR
     
     MOV AH, 02h
-    MOV DL, 'o'
+    MOV DL, 254  ; Círculo pequeño
     INT 21h
     POP DX
+    POP AX
     RET
 DIBUJAR_PELOTA ENDP
+
+BORRAR_PELOTA PROC
+    PUSH AX
+    PUSH DX
+    MOV DH, pelota_y
+    MOV DL, pelota_x
+    CALL MOVER_CURSOR
+    
+    MOV AH, 02h
+    MOV DL, ' '
+    INT 21h
+    POP DX
+    POP AX
+    RET
+BORRAR_PELOTA ENDP
 
 MOVER_PELOTA PROC
     PUSH AX
     PUSH BX
     PUSH CX
     
-    ; Mover en X
     MOV AL, pelota_x
     MOV BL, pelota_dx
     ADD AL, BL
     MOV pelota_x, AL
     
-    ; Mover en Y
     MOV AL, pelota_y
     MOV BL, pelota_dy
     ADD AL, BL
     MOV pelota_y, AL
     
-    ; Colisión paredes laterales
+    ; Colisión pared izquierda
     MOV AL, pelota_x
     CMP AL, 1
     JLE REBOTAR_X
+    
+    ; Colisión pared derecha
+    MOV AL, pelota_x
     CMP AL, 78
     JGE REBOTAR_X
     JMP CHECK_Y
@@ -528,7 +669,6 @@ REBOTAR_X:
     MOV AL, pelota_dx
     NEG AL
     MOV pelota_dx, AL
-    ; Ajustar posición
     MOV AL, pelota_x
     MOV BL, pelota_dx
     ADD AL, BL
@@ -554,6 +694,7 @@ CHECK_Y:
     MOV AL, pelota_x
     MOV BL, paleta_x
     MOV CL, paleta_ancho
+    ADD CL, 2
     ADD BL, CL
     CMP AL, BL
     JGE CHECK_BLOQUES
@@ -562,7 +703,6 @@ REBOTAR_Y_UP:
     MOV AL, pelota_dy
     NEG AL
     MOV pelota_dy, AL
-    ; Ajustar posición
     MOV AL, pelota_y
     MOV BL, pelota_dy
     ADD AL, BL
@@ -571,7 +711,6 @@ REBOTAR_Y_UP:
 CHECK_BLOQUES:
     CALL VERIFICAR_COLISION_BLOQUES
     
-    ; Verificar si perdió
     MOV AL, pelota_y
     CMP AL, 24
     JGE PERDER
@@ -595,46 +734,41 @@ VERIFICAR_COLISION_BLOQUES PROC
     PUSH CX
     PUSH DX
     
-    ; Verificar si está en rango de bloques
     MOV AL, pelota_y
     CMP AL, 2
     JL FIN_VERIFICAR
-    CMP AL, 17
+    CMP AL, 10
     JGE FIN_VERIFICAR
     
     MOV AL, pelota_x
     CMP AL, 2
     JL FIN_VERIFICAR
-    CMP AL, 77
+    CMP AL, 78
     JGE FIN_VERIFICAR
     
-    ; Calcular fila: (y - 2)
+    ; Calcular fila
     MOV AL, pelota_y
     SUB AL, 2
-    MOV BL, 25           ; 25 columnas por fila
+    MOV BL, 20
     MUL BL
-    MOV BX, AX           ; BX = índice base de la fila
+    MOV BX, AX
     
-    ; Calcular columna: (x - 2) / 3
+    ; Calcular columna
     MOV AL, pelota_x
     SUB AL, 2
-    MOV CL, 3
+    MOV CL, 4
     XOR AH, AH
     DIV CL
     
-    ; Verificar que no exceda columnas
-    CMP AL, 25
+    CMP AL, 20
     JAE FIN_VERIFICAR
     
-    ; BX = fila * 25 + columna
     XOR AH, AH
     ADD BX, AX
     
-    ; Verificar límite del array
-    CMP BX, 375
+    CMP BX, 160
     JAE FIN_VERIFICAR
     
-    ; Verificar si el bloque existe
     MOV AL, bloques[BX]
     CMP AL, 0
     JE FIN_VERIFICAR
@@ -642,13 +776,38 @@ VERIFICAR_COLISION_BLOQUES PROC
     ; Destruir bloque
     MOV bloques[BX], 0
     DEC bloques_restantes
+    ADD puntos, 10
     
-    ; Rebotar verticalmente
+    ; Borrar el bloque
+    PUSH BX
+    MOV AX, BX
+    MOV BL, 20
+    DIV BL
+    
+    MOV DH, AL
+    ADD DH, 2
+    
+    MOV AL, AH
+    MOV BL, 4
+    MUL BL
+    ADD AL, 2
+    MOV DL, AL
+    
+    CALL MOVER_CURSOR
+    MOV AH, 02h
+    MOV DL, ' '
+    INT 21h
+    MOV DL, ' '
+    INT 21h
+    MOV DL, ' '
+    INT 21h
+    POP BX
+    
+    ; Rebotar
     MOV AL, pelota_dy
     NEG AL
     MOV pelota_dy, AL
     
-    ; Verificar victoria
     MOV AX, bloques_restantes
     CMP AX, 0
     JE GANAR
