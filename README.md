@@ -1,6 +1,8 @@
+
+
+<img href = "../imgs/breakdownBanner.png" width = "200">
+
 <h1 align = "center">Breakdown</h1>
-
-
 
 <p>
 Breakdown es un videojuego desarrollado en <strong>Lenguaje Ensamblador (ASM)</strong> para el procesador <strong>Intel 8086</strong>, ejecutable en el entorno <strong>Emu8086</strong>.
