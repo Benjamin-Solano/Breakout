@@ -2,7 +2,7 @@ EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
  
 breakdown.exe -- emu8086 assembler version: 4.08  
  
-[ 1/11/2025  --  17:38:39 ] 
+[ 1/11/2025  --  18:29:39 ] 
  
 ===================================================================================================
 [LINE]     LOC: MACHINE CODE                          SOURCE
@@ -15,15 +15,15 @@ breakdown.exe -- emu8086 assembler version: 4.08
 [   5]        :                                       ; Configuración del juego
 [   6]        :                                       ANCHO EQU 80
 [   7]        :                                       ALTO EQU 25
-[   8]        :                                       BLOQUES_FILAS EQU 15
-[   9]        :                                       BLOQUES_COLS EQU 25
-[  10]        :                                       TOTAL_BLOQUES EQU 375    ; 15 * 25
+[   8]        :                                       BLOQUES_FILAS EQU 8
+[   9]        :                                       BLOQUES_COLS EQU 20
+[  10]        :                                       TOTAL_BLOQUES EQU 160
 [  11]        :                                       
 [  12]        :                                       ; Paleta
-[  13]    0100: 25                                    paleta_x DB 37
+[  13]    0100: 23                                    paleta_x DB 35
 [  14]    0101: 17                                    paleta_y DB 23
-[  15]    0102: 25                                    paleta_x_anterior DB 37
-[  16]    0103: 07                                    paleta_ancho DB 7
+[  15]    0102: 23                                    paleta_x_anterior DB 35
+[  16]    0103: 0A                                    paleta_ancho DB 10
 [  17]        :                                       
 [  18]        :                                       ; Pelota
 [  19]    0104: 28                                    pelota_x DB 40
@@ -31,8 +31,8 @@ breakdown.exe -- emu8086 assembler version: 4.08
 [  21]    0106: 01                                    pelota_dx DB 1
 [  22]    0107: FF                                    pelota_dy DB 255        ; -1
 [  23]        :                                       
-[  24]        :                                       ; Bloques (375 bloques = 15 filas x 25 columnas)
-[  25]    0108: 01 01 01 01 01 01 01 01 01 01 01 01   bloques DB 375 DUP(1)
+[  24]        :                                       ; Bloques
+[  25]    0108: 01 01 01 01 01 01 01 01 01 01 01 01   bloques DB 160 DUP(1)
                 01 01 01 01 01 01 01 01 01 01 01 01 
                 01 01 01 01 01 01 01 01 01 01 01 01 
                 01 01 01 01 01 01 01 01 01 01 01 01 
@@ -45,824 +45,878 @@ breakdown.exe -- emu8086 assembler version: 4.08
                 01 01 01 01 01 01 01 01 01 01 01 01 
                 01 01 01 01 01 01 01 01 01 01 01 01 
                 01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01 01 01 01 01 01 01 01 01 01 
-                01 01 01                            
-[  26]    027F: 77 01                                 bloques_restantes DW 375
-[  27]        :                                       
-[  28]        :                                       ; Velocidad del juego
-[  29]    0281: 00 10                                 velocidad DW 1000h
-[  30]        :                                       
-[  31]        :                                       ; Mensajes del menú
-[  32]    0283: 20 20 5F 5F 5F 5F 20 20 5F 5F 5F 5F   titulo1 DB '  ____  ____  _____    _    _  _____  _   _ _____ $'
+                01 01 01 01                         
+[  26]    01A8: A0 00                                 bloques_restantes DW 160
+[  27]    01AA: 00 00                                 puntos DW 0
+[  28]        :                                       
+[  29]        :                                       ; Mensajes del menú
+[  30]    01AC: 20 20 5F 5F 5F 5F 20 20 5F 5F 5F 5F   titulo1 DB '  ____  ____  _____    _    _  _____  _   _ _____ $'
                 20 20 5F 5F 5F 5F 5F 20 20 20 20 5F 
                 20 20 20 20 5F 20 20 5F 5F 5F 5F 5F 
                 20 20 5F 20 20 20 5F 20 5F 5F 5F 5F 
                 5F 20 24                            
-[  33]    02B6: 20 7C 20 5F 5F 20 29 7C 20 20 5F 20   titulo2 DB ' | __ )|  _ \| ____|  / \  | |/ / _ \| | | |_   _|$'
+[  31]    01DF: 20 7C 20 5F 5F 20 29 7C 20 20 5F 20   titulo2 DB ' | __ )|  _ \| ____|  / \  | |/ / _ \| | | |_   _|$'
                 5C 7C 20 5F 5F 5F 5F 7C 20 20 2F 20 
                 5C 20 20 7C 20 7C 2F 20 2F 20 5F 20 
                 5C 7C 20 7C 20 7C 20 7C 5F 20 20 20 
                 5F 7C 24                            
-[  34]    02E9: 20 7C 20 20 5F 20 5C 7C 20 7C 5F 29   titulo3 DB ' |  _ \| |_) |  _|   / _ \ | '' / | | | | | | | |  $'
+[  32]    0212: 20 7C 20 20 5F 20 5C 7C 20 7C 5F 29   titulo3 DB ' |  _ \| |_) |  _|   / _ \ | '' / | | | | | | | |  $'
                 20 7C 20 20 5F 7C 20 20 20 2F 20 5F 
                 20 5C 20 7C 20 27 27 20 2F 20 7C 20 
                 7C 20 7C 20 7C 20 7C 20 7C 20 7C 20 
                 7C 20 20 24                         
-[  35]    031D: 20 7C 20 7C 5F 29 20 7C 20 20 5F 20   titulo4 DB ' | |_) |  _ <| |___ / ___ \|  <| |_| | |_| | | |  $'
+[  33]    0246: 20 7C 20 7C 5F 29 20 7C 20 20 5F 20   titulo4 DB ' | |_) |  _ <| |___ / ___ \|  <| |_| | |_| | | |  $'
                 3C 7C 20 7C 5F 5F 5F 20 2F 20 5F 5F 
                 5F 20 5C 7C 20 20 3C 7C 20 7C 5F 7C 
                 20 7C 20 7C 5F 7C 20 7C 20 7C 20 7C 
                 20 20 24                            
-[  36]    0350: 20 7C 5F 5F 5F 5F 2F 7C 5F 7C 20 5C   titulo5 DB ' |____/|_| \_\_____/_/   \_\_|\_\___/ \___/  |_|  $'
+[  34]    0279: 20 7C 5F 5F 5F 5F 2F 7C 5F 7C 20 5C   titulo5 DB ' |____/|_| \_\_____/_/   \_\_|\_\___/ \___/  |_|  $'
                 5F 5C 5F 5F 5F 5F 5F 2F 5F 2F 20 20 
                 20 5C 5F 5C 5F 7C 5C 5F 5C 5F 5F 5F 
                 2F 20 5C 5F 5F 5F 2F 20 20 7C 5F 7C 
                 20 20 24                            
-[  37]        :                                       
-[  38]    0383: 20 20 20 20 20 20 20 20 20 20 20 31   menu_opcion1 DB '           1. JUGAR$'
+[  35]        :                                       
+[  36]    02AC: 20 20 20 20 20 20 20 20 20 20 20 31   menu_opcion1 DB '           1. JUGAR$'
                 2E 20 4A 55 47 41 52 24             
-[  39]    0397: 20 20 20 20 20 20 20 20 20 20 20 32   menu_opcion2 DB '           2. INSTRUCCIONES$'
+[  37]    02C0: 20 20 20 20 20 20 20 20 20 20 20 32   menu_opcion2 DB '           2. INSTRUCCIONES$'
                 2E 20 49 4E 53 54 52 55 43 43 49 4F 
                 4E 45 53 24                         
-[  40]    03B3: 20 20 20 20 20 20 20 20 20 20 20 33   menu_opcion3 DB '           3. SALIR$'
+[  38]    02DC: 20 20 20 20 20 20 20 20 20 20 20 33   menu_opcion3 DB '           3. SALIR$'
                 2E 20 53 41 4C 49 52 24             
-[  41]    03C7: 20 20 20 20 20 20 20 20 20 20 20 53   menu_prompt DB '           Selecciona: $'
+[  39]    02F0: 20 20 20 20 20 20 20 20 20 20 20 53   menu_prompt DB '           Selecciona: $'
                 65 6C 65 63 63 69 6F 6E 61 3A 20 24 
                                                     
-[  42]        :                                       
-[  43]        :                                       ; Instrucciones
-[  44]    03DF: 20 20 20 20 20 20 20 20 20 20 20 49   inst_titulo DB '           INSTRUCCIONES$'
+[  40]        :                                       
+[  41]        :                                       ; Instrucciones
+[  42]    0308: 20 20 20 20 20 20 20 20 20 20 20 49   inst_titulo DB '           INSTRUCCIONES$'
                 4E 53 54 52 55 43 43 49 4F 4E 45 53 
                 24                                  
-[  45]    03F8: 20 20 20 55 73 61 20 6C 61 73 20 66   inst_linea1 DB '   Usa las flechas para mover la paleta$'
+[  43]    0321: 20 20 20 55 73 61 20 6C 61 73 20 66   inst_linea1 DB '   Usa las flechas para mover la paleta$'
                 6C 65 63 68 61 73 20 70 61 72 61 20 
                 6D 6F 76 65 72 20 6C 61 20 70 61 6C 
                 65 74 61 24                         
-[  46]    0420: 20 20 20 44 65 73 74 72 75 79 65 20   inst_linea2 DB '   Destruye todos los bloques con la pelota$'
+[  44]    0349: 20 20 20 44 65 73 74 72 75 79 65 20   inst_linea2 DB '   Destruye todos los bloques con la pelota$'
                 74 6F 64 6F 73 20 6C 6F 73 20 62 6C 
                 6F 71 75 65 73 20 63 6F 6E 20 6C 61 
                 20 70 65 6C 6F 74 61 24             
-[  47]    044C: 20 20 20 4E 6F 20 64 65 6A 65 73 20   inst_linea3 DB '   No dejes que la pelota caiga$'
+[  45]    0375: 20 20 20 4E 6F 20 64 65 6A 65 73 20   inst_linea3 DB '   No dejes que la pelota caiga$'
                 71 75 65 20 6C 61 20 70 65 6C 6F 74 
                 61 20 63 61 69 67 61 24             
-[  48]    046C: 20 20 20 50 72 65 73 69 6F 6E 61 20   inst_linea4 DB '   Presiona ESC para salir durante el juego$'
+[  46]    0395: 20 20 20 50 72 65 73 69 6F 6E 61 20   inst_linea4 DB '   Presiona ESC para salir durante el juego$'
                 45 53 43 20 70 61 72 61 20 73 61 6C 
                 69 72 20 64 75 72 61 6E 74 65 20 65 
                 6C 20 6A 75 65 67 6F 24             
-[  49]    0498: 20 20 20 50 72 65 73 69 6F 6E 61 20   inst_linea5 DB '   Presiona cualquier tecla para volver...$'
+[  47]    03C1: 20 20 20 50 72 65 73 69 6F 6E 61 20   inst_linea5 DB '   Presiona cualquier tecla para volver...$'
                 63 75 61 6C 71 75 69 65 72 20 74 65 
                 63 6C 61 20 70 61 72 61 20 76 6F 6C 
                 76 65 72 2E 2E 2E 24                
-[  50]        :                                       
-[  51]        :                                       ; Mensajes del juego
-[  52]    04C3: 20 20 20 20 20 20 50 45 52 44 49 53   msg_perdiste DB '      PERDISTE! Presiona ENTER para menu$'
-                54 45 21 20 50 72 65 73 69 6F 6E 61 
-                20 45 4E 54 45 52 20 70 61 72 61 20 
-                6D 65 6E 75 24                      
-[  53]    04EC: 20 20 20 20 20 20 47 41 4E 41 53 54   msg_ganaste DB '      GANASTE! Presiona ENTER para menu$'
-                45 21 20 50 72 65 73 69 6F 6E 61 20 
-                45 4E 54 45 52 20 70 61 72 61 20 6D 
-                65 6E 75 24                         
-[  54]        :                                       
-[  55]    0514: 01                                    juego_activo DB 1
-[  56]    0515: 00                                    frame_counter DB 0
-[  57]        :                                       
-[  58]        :                                       .CODE
-[  59]    0520:                                       MAIN PROC
-[  60]    0520: B8 10 00                              MOV AX, @DATA
-[  61]    0523: 8E D8                                 MOV DS, AX
-[  62]        :                                       
-[  63]        :                                       ; Ocultar cursor
-[  64]    0525: E8 D5 00                              CALL OCULTAR_CURSOR
-[  65]        :                                       
-[  66]    0528:                                       MOSTRAR_MENU:
-[  67]    0528: E8 08 02                              CALL LIMPIAR_PANTALLA
-[  68]    052B: E8 E7 00                              CALL DIBUJAR_MENU
-[  69]        :                                       
-[  70]        :                                       ; Leer opción
-[  71]    052E: B4 00                                 MOV AH, 00h
-[  72]    0530: CD 16                                 INT 16h
-[  73]        :                                       
-[  74]    0532: 3C 31                                 CMP AL, '1'
-[  75]    0534: 74 19                                 JE INICIAR_JUEGO
-[  76]    0536: 3C 32                                 CMP AL, '2'
-[  77]    0538: 74 09                                 JE MOSTRAR_INSTRUCCIONES
-[  78]    053A: 3C 33                                 CMP AL, '3'
-[  79]    053C: 75 03 E9 B5 00                        JE SALIR_PROGRAMA
-[  80]        :                                       
-[  81]    0541: EB E5                                 JMP MOSTRAR_MENU
-[  82]        :                                       
-[  83]    0543:                                       MOSTRAR_INSTRUCCIONES:
-[  84]    0543: E8 ED 01                              CALL LIMPIAR_PANTALLA
-[  85]    0546: E8 4D 01                              CALL DIBUJAR_INSTRUCCIONES
-[  86]        :                                       
-[  87]        :                                       ; Esperar tecla
-[  88]    0549: B4 00                                 MOV AH, 00h
-[  89]    054B: CD 16                                 INT 16h
-[  90]    054D: EB D9                                 JMP MOSTRAR_MENU
-[  91]        :                                       
-[  92]    054F:                                       INICIAR_JUEGO:
-[  93]    054F: E8 9B 01                              CALL REINICIAR_JUEGO
-[  94]    0552: E8 DE 01                              CALL LIMPIAR_PANTALLA
-[  95]        :                                       
-[  96]    0555:                                       GAME_LOOP:
-[  97]    0555: A0 14 04                              MOV AL, juego_activo
-[  98]    0558: 3C 00                                 CMP AL, 0
-[  99]    055A: 74 71                                 JE FIN_JUEGO
-[ 100]        :                                       
-[ 101]        :                                       ; Dibujar escena solo una vez al inicio
-[ 102]    055C: A0 15 04                              MOV AL, frame_counter
-[ 103]    055F: 3C 00                                 CMP AL, 0
-[ 104]    0561: 75 06                                 JNE SKIP_DIBUJO_INICIAL
-[ 105]        :                                       
-[ 106]    0563: E8 E1 01                              CALL DIBUJAR_MARCO
-[ 107]    0566: E8 F9 01                              CALL DIBUJAR_BLOQUES
-[ 108]        :                                       
-[ 109]    0569:                                       SKIP_DIBUJO_INICIAL:
-[ 110]        :                                       ; Siempre dibujar paleta (puede moverse)
-[ 111]    0569: E8 55 02                              CALL BORRAR_PALETA_ANTERIOR
-[ 112]    056C: E8 2C 02                              CALL DIBUJAR_PALETA
-[ 113]    056F: E8 75 02                              CALL DIBUJAR_PELOTA
-[ 114]        :                                       
-[ 115]        :                                       ; Control de velocidad
-[ 116]    0572: E8 BF 03                              CALL DELAY_GAME
-[ 117]        :                                       
-[ 118]        :                                       ; Leer tecla sin esperar
-[ 119]    0575: B4 01                                 MOV AH, 01h
-[ 120]    0577: CD 16                                 INT 16h
-[ 121]    0579: 74 3F                                 JZ NO_TECLA
-[ 122]        :                                       
-[ 123]    057B: B4 00                                 MOV AH, 00h
-[ 124]    057D: CD 16                                 INT 16h
-[ 125]        :                                       
-[ 126]    057F: 3C 1B                                 CMP AL, 27          ; ESC
-[ 127]    0581: 74 0C                                 JE VOLVER_MENU
-[ 128]    0583: 80 FC 4B                              CMP AH, 4Bh         ; Izquierda
-[ 129]    0586: 74 09                                 JE MOVER_IZQ
-[ 130]    0588: 80 FC 4D                              CMP AH, 4Dh         ; Derecha
-[ 131]    058B: 74 15                                 JE MOVER_DER
-[ 132]    058D: EB 2B                                 JMP NO_TECLA
-[ 133]        :                                       
-[ 134]    058F:                                       VOLVER_MENU:
-[ 135]    058F: EB 97                                 JMP MOSTRAR_MENU
-[ 136]        :                                       
-[ 137]    0591:                                       MOVER_IZQ:
-[ 138]    0591: A0 00 00                              MOV AL, paleta_x
-[ 139]    0594: A2 02 00                              MOV paleta_x_anterior, AL
-[ 140]    0597: 3C 02                                 CMP AL, 2
-[ 141]    0599: 7E 1F                                 JLE NO_TECLA
-[ 142]    059B: FE C8                                 DEC AL
-[ 143]    059D: A2 00 00                              MOV paleta_x, AL
-[ 144]    05A0: EB 18                                 JMP NO_TECLA
-[ 145]        :                                       
-[ 146]    05A2:                                       MOVER_DER:
-[ 147]    05A2: A0 00 00                              MOV AL, paleta_x
-[ 148]    05A5: A2 02 00                              MOV paleta_x_anterior, AL
-[ 149]    05A8: 8A 1E 03 00                           MOV BL, paleta_ancho
-[ 150]    05AC: 02 C3                                 ADD AL, BL
-[ 151]    05AE: 3C 4E                                 CMP AL, 78
-[ 152]    05B0: 7D 08                                 JGE NO_TECLA
-[ 153]    05B2: A0 00 00                              MOV AL, paleta_x
-[ 154]    05B5: FE C0                                 INC AL
-[ 155]    05B7: A2 00 00                              MOV paleta_x, AL
+[  48]        :                                       
+[  49]        :                                       ; Mensajes del juego
+[  50]    03EC: 50 45 52 44 49 53 54 45 21 20 50 72   msg_perdiste DB 'PERDISTE! Presiona ENTER para menu$'
+                65 73 69 6F 6E 61 20 45 4E 54 45 52 
+                20 70 61 72 61 20 6D 65 6E 75 24    
+[  51]    040F: 47 41 4E 41 53 54 45 21 20 50 72 65   msg_ganaste DB 'GANASTE! Presiona ENTER para menu$'
+                73 69 6F 6E 61 20 45 4E 54 45 52 20 
+                70 61 72 61 20 6D 65 6E 75 24       
+[  52]    0431: 50 75 6E 74 6F 73 3A 20 24            msg_puntos DB 'Puntos: $'
+[  53]        :                                       
+[  54]    043A: 01                                    juego_activo DB 1
+[  55]    043B: 00                                    frame_counter DB 0
+[  56]        :                                       
+[  57]        :                                       .CODE
+[  58]    0440:                                       MAIN PROC
+[  59]    0440: B8 10 00                              MOV AX, @DATA
+[  60]    0443: 8E D8                                 MOV DS, AX
+[  61]        :                                       
+[  62]    0445: E8 DF 00                              CALL OCULTAR_CURSOR
+[  63]        :                                       
+[  64]    0448:                                       MOSTRAR_MENU:
+[  65]    0448: E8 8C 02                              CALL LIMPIAR_PANTALLA
+[  66]    044B: E8 F1 00                              CALL DIBUJAR_MENU
+[  67]        :                                       
+[  68]    044E: B4 00                                 MOV AH, 00h
+[  69]    0450: CD 16                                 INT 16h
+[  70]        :                                       
+[  71]    0452: 3C 31                                 CMP AL, '1'
+[  72]    0454: 74 19                                 JE INICIAR_JUEGO
+[  73]    0456: 3C 32                                 CMP AL, '2'
+[  74]    0458: 74 09                                 JE MOSTRAR_INSTRUCCIONES
+[  75]    045A: 3C 33                                 CMP AL, '3'
+[  76]    045C: 75 03 E9 BF 00                        JE SALIR_PROGRAMA
+[  77]        :                                       
+[  78]    0461: EB E5                                 JMP MOSTRAR_MENU
+[  79]        :                                       
+[  80]    0463:                                       MOSTRAR_INSTRUCCIONES:
+[  81]    0463: E8 71 02                              CALL LIMPIAR_PANTALLA
+[  82]    0466: E8 57 01                              CALL DIBUJAR_INSTRUCCIONES
+[  83]        :                                       
+[  84]    0469: B4 00                                 MOV AH, 00h
+[  85]    046B: CD 16                                 INT 16h
+[  86]    046D: EB D9                                 JMP MOSTRAR_MENU
+[  87]        :                                       
+[  88]    046F:                                       INICIAR_JUEGO:
+[  89]    046F: E8 19 02                              CALL REINICIAR_JUEGO
+[  90]    0472: E8 62 02                              CALL LIMPIAR_PANTALLA
+[  91]    0475: E8 9F 01                              CALL DIBUJAR_CAMPO_INICIAL
+[  92]        :                                       
+[  93]    0478:                                       GAME_LOOP:
+[  94]    0478: A0 3A 03                              MOV AL, juego_activo
+[  95]    047B: 3C 00                                 CMP AL, 0
+[  96]    047D: 74 67                                 JE FIN_JUEGO
+[  97]        :                                       
+[  98]    047F: E8 B5 01                              CALL MOSTRAR_INFO
+[  99]    0482: E8 DF 02                              CALL BORRAR_PALETA_ANTERIOR
+[ 100]    0485: E8 B0 02                              CALL DIBUJAR_PALETA
+[ 101]    0488: E8 02 03                              CALL DIBUJAR_PELOTA
+[ 102]        :                                       
+[ 103]    048B: E8 5F 04                              CALL DELAY_GAME
+[ 104]        :                                       
+[ 105]        :                                       ; Leer tecla
+[ 106]    048E: B4 01                                 MOV AH, 01h
+[ 107]    0490: CD 16                                 INT 16h
+[ 108]    0492: 74 3F                                 JZ NO_TECLA
+[ 109]        :                                       
+[ 110]    0494: B4 00                                 MOV AH, 00h
+[ 111]    0496: CD 16                                 INT 16h
+[ 112]        :                                       
+[ 113]    0498: 3C 1B                                 CMP AL, 27          ; ESC
+[ 114]    049A: 74 0C                                 JE VOLVER_MENU
+[ 115]    049C: 80 FC 4B                              CMP AH, 4Bh         ; Izquierda
+[ 116]    049F: 74 09                                 JE MOVER_IZQ
+[ 117]    04A1: 80 FC 4D                              CMP AH, 4Dh         ; Derecha
+[ 118]    04A4: 74 15                                 JE MOVER_DER
+[ 119]    04A6: EB 2B                                 JMP NO_TECLA
+[ 120]        :                                       
+[ 121]    04A8:                                       VOLVER_MENU:
+[ 122]    04A8: EB 9E                                 JMP MOSTRAR_MENU
+[ 123]        :                                       
+[ 124]    04AA:                                       MOVER_IZQ:
+[ 125]    04AA: A0 00 00                              MOV AL, paleta_x
+[ 126]    04AD: A2 02 00                              MOV paleta_x_anterior, AL
+[ 127]    04B0: 3C 01                                 CMP AL, 1
+[ 128]    04B2: 7E 1F                                 JLE NO_TECLA
+[ 129]    04B4: FE C8                                 DEC AL
+[ 130]    04B6: A2 00 00                              MOV paleta_x, AL
+[ 131]    04B9: EB 18                                 JMP NO_TECLA
+[ 132]        :                                       
+[ 133]    04BB:                                       MOVER_DER:
+[ 134]    04BB: A0 00 00                              MOV AL, paleta_x
+[ 135]    04BE: A2 02 00                              MOV paleta_x_anterior, AL
+[ 136]    04C1: 8A 1E 03 00                           MOV BL, paleta_ancho
+[ 137]    04C5: 02 C3                                 ADD AL, BL
+[ 138]    04C7: 3C 4F                                 CMP AL, 79
+[ 139]    04C9: 7D 08                                 JGE NO_TECLA
+[ 140]    04CB: A0 00 00                              MOV AL, paleta_x
+[ 141]    04CE: FE C0                                 INC AL
+[ 142]    04D0: A2 00 00                              MOV paleta_x, AL
+[ 143]        :                                       
+[ 144]    04D3:                                       NO_TECLA:
+[ 145]    04D3: FE 06 3B 03                           INC frame_counter
+[ 146]    04D7: A0 3B 03                              MOV AL, frame_counter
+[ 147]    04DA: 24 01                                 AND AL, 01h
+[ 148]    04DC: 75 9A                                 JNZ GAME_LOOP
+[ 149]        :                                       
+[ 150]    04DE: E8 C2 02                              CALL BORRAR_PELOTA
+[ 151]    04E1: E8 D5 02                              CALL MOVER_PELOTA
+[ 152]    04E4: EB 92                                 JMP GAME_LOOP
+[ 153]        :                                       
+[ 154]    04E6:                                       FIN_JUEGO:
+[ 155]    04E6: E8 EE 01                              CALL LIMPIAR_PANTALLA
 [ 156]        :                                       
-[ 157]    05BA:                                       NO_TECLA:
-[ 158]        :                                       ; Actualizar física cada 2 frames
-[ 159]    05BA: FE 06 15 04                           INC frame_counter
-[ 160]    05BE: A0 15 04                              MOV AL, frame_counter
-[ 161]    05C1: 24 01                                 AND AL, 01h
-[ 162]    05C3: 75 90                                 JNZ GAME_LOOP
-[ 163]        :                                       
-[ 164]        :                                       ; Borrar posición anterior de la pelota
-[ 165]    05C5: E8 35 02                              CALL BORRAR_PELOTA
-[ 166]        :                                       
-[ 167]    05C8: E8 48 02                              CALL MOVER_PELOTA
-[ 168]    05CB: EB 88                                 JMP GAME_LOOP
-[ 169]        :                                       
-[ 170]    05CD:                                       FIN_JUEGO:
-[ 171]    05CD: E8 63 01                              CALL LIMPIAR_PANTALLA
-[ 172]        :                                       
-[ 173]    05D0: B6 0C                                 MOV DH, 12
-[ 174]    05D2: B2 0F                                 MOV DL, 15
-[ 175]    05D4: E8 65 01                              CALL MOVER_CURSOR
-[ 176]        :                                       
-[ 177]    05D7: A1 7F 01                              MOV AX, bloques_restantes
-[ 178]    05DA: 3D 00 00                              CMP AX, 0
-[ 179]    05DD: 74 05                                 JE MOSTRAR_GANASTE_MSG
-[ 180]        :                                       
-[ 181]    05DF: BA C3 03                              LEA DX, msg_perdiste
-[ 182]    05E2: EB 03                                 JMP MOSTRAR_MSG
+[ 157]    04E9: B6 0A                                 MOV DH, 10
+[ 158]    04EB: B2 14                                 MOV DL, 20
+[ 159]    04ED: E8 F0 01                              CALL MOVER_CURSOR
+[ 160]        :                                       
+[ 161]    04F0: A1 A8 00                              MOV AX, bloques_restantes
+[ 162]    04F3: 3D 00 00                              CMP AX, 0
+[ 163]    04F6: 74 05                                 JE MOSTRAR_GANASTE_MSG
+[ 164]        :                                       
+[ 165]    04F8: BA EC 02                              LEA DX, msg_perdiste
+[ 166]    04FB: EB 03                                 JMP MOSTRAR_MSG
+[ 167]        :                                       
+[ 168]    04FD:                                       MOSTRAR_GANASTE_MSG:
+[ 169]    04FD: BA 0F 03                              LEA DX, msg_ganaste
+[ 170]        :                                       
+[ 171]    0500:                                       MOSTRAR_MSG:
+[ 172]    0500: B4 09                                 MOV AH, 09h
+[ 173]    0502: CD 21                                 INT 21h
+[ 174]        :                                       
+[ 175]        :                                       ; Mostrar puntos finales
+[ 176]    0504: B6 0C                                 MOV DH, 12
+[ 177]    0506: B2 19                                 MOV DL, 25
+[ 178]    0508: E8 D5 01                              CALL MOVER_CURSOR
+[ 179]    050B: BA 31 03                              LEA DX, msg_puntos
+[ 180]    050E: B4 09                                 MOV AH, 09h
+[ 181]    0510: CD 21                                 INT 21h
+[ 182]    0512: E8 4F 01                              CALL IMPRIMIR_NUMERO
 [ 183]        :                                       
-[ 184]    05E4:                                       MOSTRAR_GANASTE_MSG:
-[ 185]    05E4: BA EC 03                              LEA DX, msg_ganaste
-[ 186]        :                                       
-[ 187]    05E7:                                       MOSTRAR_MSG:
-[ 188]    05E7: B4 09                                 MOV AH, 09h
-[ 189]    05E9: CD 21                                 INT 21h
-[ 190]        :                                       
-[ 191]    05EB:                                       ESPERAR_ENTER:
-[ 192]    05EB: B4 00                                 MOV AH, 00h
-[ 193]    05ED: CD 16                                 INT 16h
-[ 194]    05EF: 3C 0D                                 CMP AL, 13          ; ENTER
-[ 195]    05F1: 75 F8                                 JNE ESPERAR_ENTER
-[ 196]        :                                       
-[ 197]    05F3: E9 32 FF                              JMP MOSTRAR_MENU
-[ 198]        :                                       
-[ 199]    05F6:                                       SALIR_PROGRAMA:
-[ 200]    05F6: E8 10 00                              CALL MOSTRAR_CURSOR
-[ 201]    05F9: B4 4C                                 MOV AH, 4Ch
-[ 202]    05FB: CD 21                                 INT 21h
-[ 203]        :                                       MAIN ENDP
-[ 204]        :                                       
-[ 205]    05FD:                                       OCULTAR_CURSOR PROC
-[ 206]    05FD: 50                                    PUSH AX
-[ 207]    05FE: 51                                    PUSH CX
-[ 208]    05FF: B4 01                                 MOV AH, 01h
-[ 209]    0601: B9 00 20                              MOV CX, 2000h
-[ 210]    0604: CD 10                                 INT 10h
-[ 211]    0606: 59                                    POP CX
-[ 212]    0607: 58                                    POP AX
-[ 213]    0608: C3                                    RET
-[ 214]        :                                       OCULTAR_CURSOR ENDP
-[ 215]        :                                       
-[ 216]    0609:                                       MOSTRAR_CURSOR PROC
-[ 217]    0609: 50                                    PUSH AX
-[ 218]    060A: 51                                    PUSH CX
-[ 219]    060B: B4 01                                 MOV AH, 01h
-[ 220]    060D: B9 07 06                              MOV CX, 0607h
-[ 221]    0610: CD 10                                 INT 10h
-[ 222]    0612: 59                                    POP CX
-[ 223]    0613: 58                                    POP AX
-[ 224]    0614: C3                                    RET
-[ 225]        :                                       MOSTRAR_CURSOR ENDP
-[ 226]        :                                       
-[ 227]    0615:                                       DIBUJAR_MENU PROC
-[ 228]    0615: 52                                    PUSH DX
+[ 184]    0515:                                       ESPERAR_ENTER:
+[ 185]    0515: B4 00                                 MOV AH, 00h
+[ 186]    0517: CD 16                                 INT 16h
+[ 187]    0519: 3C 0D                                 CMP AL, 13
+[ 188]    051B: 75 F8                                 JNE ESPERAR_ENTER
+[ 189]        :                                       
+[ 190]    051D: E9 28 FF                              JMP MOSTRAR_MENU
+[ 191]        :                                       
+[ 192]    0520:                                       SALIR_PROGRAMA:
+[ 193]    0520: E8 10 00                              CALL MOSTRAR_CURSOR
+[ 194]    0523: B4 4C                                 MOV AH, 4Ch
+[ 195]    0525: CD 21                                 INT 21h
+[ 196]        :                                       MAIN ENDP
+[ 197]        :                                       
+[ 198]    0527:                                       OCULTAR_CURSOR PROC
+[ 199]    0527: 50                                    PUSH AX
+[ 200]    0528: 51                                    PUSH CX
+[ 201]    0529: B4 01                                 MOV AH, 01h
+[ 202]    052B: B9 00 20                              MOV CX, 2000h
+[ 203]    052E: CD 10                                 INT 10h
+[ 204]    0530: 59                                    POP CX
+[ 205]    0531: 58                                    POP AX
+[ 206]    0532: C3                                    RET
+[ 207]        :                                       OCULTAR_CURSOR ENDP
+[ 208]        :                                       
+[ 209]    0533:                                       MOSTRAR_CURSOR PROC
+[ 210]    0533: 50                                    PUSH AX
+[ 211]    0534: 51                                    PUSH CX
+[ 212]    0535: B4 01                                 MOV AH, 01h
+[ 213]    0537: B9 07 06                              MOV CX, 0607h
+[ 214]    053A: CD 10                                 INT 10h
+[ 215]    053C: 59                                    POP CX
+[ 216]    053D: 58                                    POP AX
+[ 217]    053E: C3                                    RET
+[ 218]        :                                       MOSTRAR_CURSOR ENDP
+[ 219]        :                                       
+[ 220]    053F:                                       DIBUJAR_MENU PROC
+[ 221]    053F: 52                                    PUSH DX
+[ 222]        :                                       
+[ 223]    0540: B6 05                                 MOV DH, 5
+[ 224]    0542: B2 0A                                 MOV DL, 10
+[ 225]    0544: E8 99 01                              CALL MOVER_CURSOR
+[ 226]    0547: BA AC 00                              LEA DX, titulo1
+[ 227]    054A: B4 09                                 MOV AH, 09h
+[ 228]    054C: CD 21                                 INT 21h
 [ 229]        :                                       
-[ 230]        :                                       ; Título
-[ 231]    0616: B6 05                                 MOV DH, 5
-[ 232]    0618: B2 0A                                 MOV DL, 10
-[ 233]    061A: E8 1F 01                              CALL MOVER_CURSOR
-[ 234]    061D: BA 83 01                              LEA DX, titulo1
-[ 235]    0620: B4 09                                 MOV AH, 09h
-[ 236]    0622: CD 21                                 INT 21h
-[ 237]        :                                       
-[ 238]    0624: B6 06                                 MOV DH, 6
-[ 239]    0626: B2 0A                                 MOV DL, 10
-[ 240]    0628: E8 11 01                              CALL MOVER_CURSOR
-[ 241]    062B: BA B6 01                              LEA DX, titulo2
-[ 242]    062E: B4 09                                 MOV AH, 09h
-[ 243]    0630: CD 21                                 INT 21h
-[ 244]        :                                       
-[ 245]    0632: B6 07                                 MOV DH, 7
-[ 246]    0634: B2 0A                                 MOV DL, 10
-[ 247]    0636: E8 03 01                              CALL MOVER_CURSOR
-[ 248]    0639: BA E9 01                              LEA DX, titulo3
-[ 249]    063C: B4 09                                 MOV AH, 09h
-[ 250]    063E: CD 21                                 INT 21h
-[ 251]        :                                       
-[ 252]    0640: B6 08                                 MOV DH, 8
-[ 253]    0642: B2 0A                                 MOV DL, 10
-[ 254]    0644: E8 F5 00                              CALL MOVER_CURSOR
-[ 255]    0647: BA 1D 02                              LEA DX, titulo4
-[ 256]    064A: B4 09                                 MOV AH, 09h
-[ 257]    064C: CD 21                                 INT 21h
-[ 258]        :                                       
-[ 259]    064E: B6 09                                 MOV DH, 9
-[ 260]    0650: B2 0A                                 MOV DL, 10
-[ 261]    0652: E8 E7 00                              CALL MOVER_CURSOR
-[ 262]    0655: BA 50 02                              LEA DX, titulo5
-[ 263]    0658: B4 09                                 MOV AH, 09h
-[ 264]    065A: CD 21                                 INT 21h
-[ 265]        :                                       
-[ 266]        :                                       ; Opciones
-[ 267]    065C: B6 0D                                 MOV DH, 13
-[ 268]    065E: B2 14                                 MOV DL, 20
-[ 269]    0660: E8 D9 00                              CALL MOVER_CURSOR
-[ 270]    0663: BA 83 02                              LEA DX, menu_opcion1
-[ 271]    0666: B4 09                                 MOV AH, 09h
-[ 272]    0668: CD 21                                 INT 21h
-[ 273]        :                                       
-[ 274]    066A: B6 0F                                 MOV DH, 15
-[ 275]    066C: B2 14                                 MOV DL, 20
-[ 276]    066E: E8 CB 00                              CALL MOVER_CURSOR
-[ 277]    0671: BA 97 02                              LEA DX, menu_opcion2
-[ 278]    0674: B4 09                                 MOV AH, 09h
-[ 279]    0676: CD 21                                 INT 21h
-[ 280]        :                                       
-[ 281]    0678: B6 11                                 MOV DH, 17
-[ 282]    067A: B2 14                                 MOV DL, 20
-[ 283]    067C: E8 BD 00                              CALL MOVER_CURSOR
-[ 284]    067F: BA B3 02                              LEA DX, menu_opcion3
-[ 285]    0682: B4 09                                 MOV AH, 09h
-[ 286]    0684: CD 21                                 INT 21h
-[ 287]        :                                       
-[ 288]    0686: B6 14                                 MOV DH, 20
-[ 289]    0688: B2 14                                 MOV DL, 20
-[ 290]    068A: E8 AF 00                              CALL MOVER_CURSOR
-[ 291]    068D: BA C7 02                              LEA DX, menu_prompt
-[ 292]    0690: B4 09                                 MOV AH, 09h
-[ 293]    0692: CD 21                                 INT 21h
-[ 294]        :                                       
-[ 295]    0694: 5A                                    POP DX
-[ 296]    0695: C3                                    RET
-[ 297]        :                                       DIBUJAR_MENU ENDP
-[ 298]        :                                       
-[ 299]    0696:                                       DIBUJAR_INSTRUCCIONES PROC
-[ 300]    0696: 52                                    PUSH DX
-[ 301]        :                                       
-[ 302]    0697: B6 08                                 MOV DH, 8
-[ 303]    0699: B2 14                                 MOV DL, 20
-[ 304]    069B: E8 9E 00                              CALL MOVER_CURSOR
-[ 305]    069E: BA DF 02                              LEA DX, inst_titulo
-[ 306]    06A1: B4 09                                 MOV AH, 09h
-[ 307]    06A3: CD 21                                 INT 21h
-[ 308]        :                                       
-[ 309]    06A5: B6 0B                                 MOV DH, 11
-[ 310]    06A7: B2 0F                                 MOV DL, 15
-[ 311]    06A9: E8 90 00                              CALL MOVER_CURSOR
-[ 312]    06AC: BA F8 02                              LEA DX, inst_linea1
-[ 313]    06AF: B4 09                                 MOV AH, 09h
-[ 314]    06B1: CD 21                                 INT 21h
-[ 315]        :                                       
-[ 316]    06B3: B6 0D                                 MOV DH, 13
-[ 317]    06B5: B2 0F                                 MOV DL, 15
-[ 318]    06B7: E8 82 00                              CALL MOVER_CURSOR
-[ 319]    06BA: BA 20 03                              LEA DX, inst_linea2
-[ 320]    06BD: B4 09                                 MOV AH, 09h
-[ 321]    06BF: CD 21                                 INT 21h
-[ 322]        :                                       
-[ 323]    06C1: B6 0F                                 MOV DH, 15
-[ 324]    06C3: B2 0F                                 MOV DL, 15
-[ 325]    06C5: E8 74 00                              CALL MOVER_CURSOR
-[ 326]    06C8: BA 4C 03                              LEA DX, inst_linea3
-[ 327]    06CB: B4 09                                 MOV AH, 09h
-[ 328]    06CD: CD 21                                 INT 21h
-[ 329]        :                                       
-[ 330]    06CF: B6 11                                 MOV DH, 17
-[ 331]    06D1: B2 0F                                 MOV DL, 15
-[ 332]    06D3: E8 66 00                              CALL MOVER_CURSOR
-[ 333]    06D6: BA 6C 03                              LEA DX, inst_linea4
-[ 334]    06D9: B4 09                                 MOV AH, 09h
-[ 335]    06DB: CD 21                                 INT 21h
-[ 336]        :                                       
-[ 337]    06DD: B6 14                                 MOV DH, 20
-[ 338]    06DF: B2 0F                                 MOV DL, 15
-[ 339]    06E1: E8 58 00                              CALL MOVER_CURSOR
-[ 340]    06E4: BA 98 03                              LEA DX, inst_linea5
-[ 341]    06E7: B4 09                                 MOV AH, 09h
-[ 342]    06E9: CD 21                                 INT 21h
-[ 343]        :                                       
-[ 344]    06EB: 5A                                    POP DX
-[ 345]    06EC: C3                                    RET
-[ 346]        :                                       DIBUJAR_INSTRUCCIONES ENDP
-[ 347]        :                                       
-[ 348]    06ED:                                       REINICIAR_JUEGO PROC
-[ 349]    06ED: 50                                    PUSH AX
-[ 350]    06EE: 53                                    PUSH BX
-[ 351]    06EF: 51                                    PUSH CX
-[ 352]        :                                       
-[ 353]        :                                       ; Reiniciar paleta (centrada)
-[ 354]    06F0: C6 06 00 00 25                        MOV paleta_x, 37
-[ 355]    06F5: C6 06 02 00 25                        MOV paleta_x_anterior, 37
-[ 356]    06FA: C6 06 01 00 17                        MOV paleta_y, 23
-[ 357]        :                                       
-[ 358]        :                                       ; Reiniciar pelota
-[ 359]    06FF: C6 06 04 00 28                        MOV pelota_x, 40
-[ 360]    0704: C6 06 05 00 12                        MOV pelota_y, 18
-[ 361]    0709: C6 06 06 00 01                        MOV pelota_dx, 1
-[ 362]    070E: C6 06 07 00 FF                        MOV pelota_dy, 255
-[ 363]        :                                       
-[ 364]        :                                       ; Reiniciar bloques
-[ 365]    0713: B9 77 01                              MOV CX, 375
-[ 366]    0716: 33 DB                                 XOR BX, BX
-[ 367]        :                                       
-[ 368]    0718:                                       REINICIAR_BLOQUES_LOOP:
-[ 369]    0718: C6 47 08 01                           MOV bloques[BX], 1
-[ 370]    071C: 43                                    INC BX
-[ 371]    071D: E2 F9                                 LOOP REINICIAR_BLOQUES_LOOP
-[ 372]        :                                       
-[ 373]    071F: C7 06 7F 01 77 01                     MOV bloques_restantes, 375
-[ 374]    0725: C6 06 14 04 01                        MOV juego_activo, 1
-[ 375]    072A: C6 06 15 04 00                        MOV frame_counter, 0
-[ 376]        :                                       
-[ 377]    072F: 59                                    POP CX
-[ 378]    0730: 5B                                    POP BX
-[ 379]    0731: 58                                    POP AX
-[ 380]    0732: C3                                    RET
-[ 381]        :                                       REINICIAR_JUEGO ENDP
-[ 382]        :                                       
-[ 383]    0733:                                       LIMPIAR_PANTALLA PROC
-[ 384]    0733: 50                                    PUSH AX
-[ 385]    0734: B4 00                                 MOV AH, 00h
-[ 386]    0736: B0 03                                 MOV AL, 03h
-[ 387]    0738: CD 10                                 INT 10h
-[ 388]    073A: 58                                    POP AX
-[ 389]    073B: C3                                    RET
-[ 390]        :                                       LIMPIAR_PANTALLA ENDP
-[ 391]        :                                       
-[ 392]    073C:                                       MOVER_CURSOR PROC
-[ 393]    073C: 50                                    PUSH AX
-[ 394]    073D: 53                                    PUSH BX
-[ 395]    073E: B4 02                                 MOV AH, 02h
-[ 396]    0740: B7 00                                 MOV BH, 0
-[ 397]    0742: CD 10                                 INT 10h
-[ 398]    0744: 5B                                    POP BX
-[ 399]    0745: 58                                    POP AX
-[ 400]    0746: C3                                    RET
-[ 401]        :                                       MOVER_CURSOR ENDP
-[ 402]        :                                       
-[ 403]    0747:                                       DIBUJAR_MARCO PROC
-[ 404]    0747: 50                                    PUSH AX
-[ 405]    0748: 51                                    PUSH CX
-[ 406]    0749: 52                                    PUSH DX
+[ 230]    054E: B6 06                                 MOV DH, 6
+[ 231]    0550: B2 0A                                 MOV DL, 10
+[ 232]    0552: E8 8B 01                              CALL MOVER_CURSOR
+[ 233]    0555: BA DF 00                              LEA DX, titulo2
+[ 234]    0558: B4 09                                 MOV AH, 09h
+[ 235]    055A: CD 21                                 INT 21h
+[ 236]        :                                       
+[ 237]    055C: B6 07                                 MOV DH, 7
+[ 238]    055E: B2 0A                                 MOV DL, 10
+[ 239]    0560: E8 7D 01                              CALL MOVER_CURSOR
+[ 240]    0563: BA 12 01                              LEA DX, titulo3
+[ 241]    0566: B4 09                                 MOV AH, 09h
+[ 242]    0568: CD 21                                 INT 21h
+[ 243]        :                                       
+[ 244]    056A: B6 08                                 MOV DH, 8
+[ 245]    056C: B2 0A                                 MOV DL, 10
+[ 246]    056E: E8 6F 01                              CALL MOVER_CURSOR
+[ 247]    0571: BA 46 01                              LEA DX, titulo4
+[ 248]    0574: B4 09                                 MOV AH, 09h
+[ 249]    0576: CD 21                                 INT 21h
+[ 250]        :                                       
+[ 251]    0578: B6 09                                 MOV DH, 9
+[ 252]    057A: B2 0A                                 MOV DL, 10
+[ 253]    057C: E8 61 01                              CALL MOVER_CURSOR
+[ 254]    057F: BA 79 01                              LEA DX, titulo5
+[ 255]    0582: B4 09                                 MOV AH, 09h
+[ 256]    0584: CD 21                                 INT 21h
+[ 257]        :                                       
+[ 258]    0586: B6 0D                                 MOV DH, 13
+[ 259]    0588: B2 14                                 MOV DL, 20
+[ 260]    058A: E8 53 01                              CALL MOVER_CURSOR
+[ 261]    058D: BA AC 01                              LEA DX, menu_opcion1
+[ 262]    0590: B4 09                                 MOV AH, 09h
+[ 263]    0592: CD 21                                 INT 21h
+[ 264]        :                                       
+[ 265]    0594: B6 0F                                 MOV DH, 15
+[ 266]    0596: B2 14                                 MOV DL, 20
+[ 267]    0598: E8 45 01                              CALL MOVER_CURSOR
+[ 268]    059B: BA C0 01                              LEA DX, menu_opcion2
+[ 269]    059E: B4 09                                 MOV AH, 09h
+[ 270]    05A0: CD 21                                 INT 21h
+[ 271]        :                                       
+[ 272]    05A2: B6 11                                 MOV DH, 17
+[ 273]    05A4: B2 14                                 MOV DL, 20
+[ 274]    05A6: E8 37 01                              CALL MOVER_CURSOR
+[ 275]    05A9: BA DC 01                              LEA DX, menu_opcion3
+[ 276]    05AC: B4 09                                 MOV AH, 09h
+[ 277]    05AE: CD 21                                 INT 21h
+[ 278]        :                                       
+[ 279]    05B0: B6 14                                 MOV DH, 20
+[ 280]    05B2: B2 14                                 MOV DL, 20
+[ 281]    05B4: E8 29 01                              CALL MOVER_CURSOR
+[ 282]    05B7: BA F0 01                              LEA DX, menu_prompt
+[ 283]    05BA: B4 09                                 MOV AH, 09h
+[ 284]    05BC: CD 21                                 INT 21h
+[ 285]        :                                       
+[ 286]    05BE: 5A                                    POP DX
+[ 287]    05BF: C3                                    RET
+[ 288]        :                                       DIBUJAR_MENU ENDP
+[ 289]        :                                       
+[ 290]    05C0:                                       DIBUJAR_INSTRUCCIONES PROC
+[ 291]    05C0: 52                                    PUSH DX
+[ 292]        :                                       
+[ 293]    05C1: B6 08                                 MOV DH, 8
+[ 294]    05C3: B2 14                                 MOV DL, 20
+[ 295]    05C5: E8 18 01                              CALL MOVER_CURSOR
+[ 296]    05C8: BA 08 02                              LEA DX, inst_titulo
+[ 297]    05CB: B4 09                                 MOV AH, 09h
+[ 298]    05CD: CD 21                                 INT 21h
+[ 299]        :                                       
+[ 300]    05CF: B6 0B                                 MOV DH, 11
+[ 301]    05D1: B2 0F                                 MOV DL, 15
+[ 302]    05D3: E8 0A 01                              CALL MOVER_CURSOR
+[ 303]    05D6: BA 21 02                              LEA DX, inst_linea1
+[ 304]    05D9: B4 09                                 MOV AH, 09h
+[ 305]    05DB: CD 21                                 INT 21h
+[ 306]        :                                       
+[ 307]    05DD: B6 0D                                 MOV DH, 13
+[ 308]    05DF: B2 0F                                 MOV DL, 15
+[ 309]    05E1: E8 FC 00                              CALL MOVER_CURSOR
+[ 310]    05E4: BA 49 02                              LEA DX, inst_linea2
+[ 311]    05E7: B4 09                                 MOV AH, 09h
+[ 312]    05E9: CD 21                                 INT 21h
+[ 313]        :                                       
+[ 314]    05EB: B6 0F                                 MOV DH, 15
+[ 315]    05ED: B2 0F                                 MOV DL, 15
+[ 316]    05EF: E8 EE 00                              CALL MOVER_CURSOR
+[ 317]    05F2: BA 75 02                              LEA DX, inst_linea3
+[ 318]    05F5: B4 09                                 MOV AH, 09h
+[ 319]    05F7: CD 21                                 INT 21h
+[ 320]        :                                       
+[ 321]    05F9: B6 11                                 MOV DH, 17
+[ 322]    05FB: B2 0F                                 MOV DL, 15
+[ 323]    05FD: E8 E0 00                              CALL MOVER_CURSOR
+[ 324]    0600: BA 95 02                              LEA DX, inst_linea4
+[ 325]    0603: B4 09                                 MOV AH, 09h
+[ 326]    0605: CD 21                                 INT 21h
+[ 327]        :                                       
+[ 328]    0607: B6 14                                 MOV DH, 20
+[ 329]    0609: B2 0F                                 MOV DL, 15
+[ 330]    060B: E8 D2 00                              CALL MOVER_CURSOR
+[ 331]    060E: BA C1 02                              LEA DX, inst_linea5
+[ 332]    0611: B4 09                                 MOV AH, 09h
+[ 333]    0613: CD 21                                 INT 21h
+[ 334]        :                                       
+[ 335]    0615: 5A                                    POP DX
+[ 336]    0616: C3                                    RET
+[ 337]        :                                       DIBUJAR_INSTRUCCIONES ENDP
+[ 338]        :                                       
+[ 339]    0617:                                       DIBUJAR_CAMPO_INICIAL PROC
+[ 340]    0617: 50                                    PUSH AX
+[ 341]    0618: 53                                    PUSH BX
+[ 342]    0619: 51                                    PUSH CX
+[ 343]    061A: 52                                    PUSH DX
+[ 344]        :                                       
+[ 345]        :                                       ; Dibujar borde superior decorativo
+[ 346]    061B: B6 00                                 MOV DH, 0
+[ 347]    061D: B2 00                                 MOV DL, 0
+[ 348]    061F: B9 50 00                              MOV CX, 80
+[ 349]    0622:                                       BORDE_SUP:
+[ 350]    0622: E8 BB 00                              CALL MOVER_CURSOR
+[ 351]    0625: B4 02                                 MOV AH, 02h
+[ 352]    0627: B2 DB                                 MOV DL, 219  ; Bloque sólido
+[ 353]    0629: CD 21                                 INT 21h
+[ 354]    062B: FE C2                                 INC DL
+[ 355]    062D: E2 F3                                 LOOP BORDE_SUP
+[ 356]        :                                       
+[ 357]        :                                       ; Dibujar bloques
+[ 358]    062F: E8 B9 00                              CALL DIBUJAR_BLOQUES
+[ 359]        :                                       
+[ 360]    0632: 5A                                    POP DX
+[ 361]    0633: 59                                    POP CX
+[ 362]    0634: 5B                                    POP BX
+[ 363]    0635: 58                                    POP AX
+[ 364]    0636: C3                                    RET
+[ 365]        :                                       DIBUJAR_CAMPO_INICIAL ENDP
+[ 366]        :                                       
+[ 367]    0637:                                       MOSTRAR_INFO PROC
+[ 368]    0637: 50                                    PUSH AX
+[ 369]    0638: 52                                    PUSH DX
+[ 370]        :                                       
+[ 371]        :                                       ; Mostrar puntos en la última línea
+[ 372]    0639: B6 18                                 MOV DH, 24
+[ 373]    063B: B2 02                                 MOV DL, 2
+[ 374]    063D: E8 A0 00                              CALL MOVER_CURSOR
+[ 375]    0640: BA 31 03                              LEA DX, msg_puntos
+[ 376]    0643: B4 09                                 MOV AH, 09h
+[ 377]    0645: CD 21                                 INT 21h
+[ 378]    0647: E8 1A 00                              CALL IMPRIMIR_NUMERO
+[ 379]        :                                       
+[ 380]        :                                       ; Mostrar bloques restantes
+[ 381]    064A: B6 18                                 MOV DH, 24
+[ 382]    064C: B2 14                                 MOV DL, 20
+[ 383]    064E: E8 8F 00                              CALL MOVER_CURSOR
+[ 384]    0651: B4 02                                 MOV AH, 02h
+[ 385]    0653: B2 42                                 MOV DL, 'B'
+[ 386]    0655: CD 21                                 INT 21h
+[ 387]    0657: B2 3A                                 MOV DL, ':'
+[ 388]    0659: CD 21                                 INT 21h
+[ 389]        :                                       
+[ 390]    065B: A1 A8 00                              MOV AX, bloques_restantes
+[ 391]    065E: E8 03 00                              CALL IMPRIMIR_NUMERO
+[ 392]        :                                       
+[ 393]    0661: 5A                                    POP DX
+[ 394]    0662: 58                                    POP AX
+[ 395]    0663: C3                                    RET
+[ 396]        :                                       MOSTRAR_INFO ENDP
+[ 397]        :                                       
+[ 398]    0664:                                       IMPRIMIR_NUMERO PROC
+[ 399]    0664: 50                                    PUSH AX
+[ 400]    0665: 53                                    PUSH BX
+[ 401]    0666: 51                                    PUSH CX
+[ 402]    0667: 52                                    PUSH DX
+[ 403]        :                                       
+[ 404]    0668: A1 AA 00                              MOV AX, puntos
+[ 405]    066B: B9 00 00                              MOV CX, 0
+[ 406]    066E: BB 0A 00                              MOV BX, 10
 [ 407]        :                                       
-[ 408]        :                                       ; Línea superior
-[ 409]    074A: B6 00                                 MOV DH, 0
-[ 410]    074C: B2 00                                 MOV DL, 0
-[ 411]    074E: B9 50 00                              MOV CX, 80
-[ 412]    0751:                                       MARCO_SUP:
-[ 413]    0751: E8 E8 FF                              CALL MOVER_CURSOR
-[ 414]    0754: B4 02                                 MOV AH, 02h
-[ 415]    0756: B2 2D                                 MOV DL, '-'
-[ 416]    0758: CD 21                                 INT 21h
-[ 417]    075A: FE C2                                 INC DL
-[ 418]    075C: E2 F3                                 LOOP MARCO_SUP
-[ 419]        :                                       
-[ 420]    075E: 5A                                    POP DX
-[ 421]    075F: 59                                    POP CX
-[ 422]    0760: 58                                    POP AX
-[ 423]    0761: C3                                    RET
-[ 424]        :                                       DIBUJAR_MARCO ENDP
-[ 425]        :                                       
-[ 426]    0762:                                       DIBUJAR_BLOQUES PROC
-[ 427]    0762: 50                                    PUSH AX
-[ 428]    0763: 53                                    PUSH BX
-[ 429]    0764: 51                                    PUSH CX
-[ 430]    0765: 52                                    PUSH DX
-[ 431]        :                                       
-[ 432]    0766: 33 DB                                 XOR BX, BX
-[ 433]    0768: B6 02                                 MOV DH, 2
+[ 408]    0671:                                       DIVIDIR:
+[ 409]    0671: 33 D2                                 XOR DX, DX
+[ 410]    0673: F7 F3                                 DIV BX
+[ 411]    0675: 52                                    PUSH DX
+[ 412]    0676: 41                                    INC CX
+[ 413]    0677: 3D 00 00                              CMP AX, 0
+[ 414]    067A: 75 F5                                 JNE DIVIDIR
+[ 415]        :                                       
+[ 416]    067C:                                       IMPRIMIR_DIGITOS:
+[ 417]    067C: 5A                                    POP DX
+[ 418]    067D: 80 C2 30                              ADD DL, '0'
+[ 419]    0680: B4 02                                 MOV AH, 02h
+[ 420]    0682: CD 21                                 INT 21h
+[ 421]    0684: E2 F6                                 LOOP IMPRIMIR_DIGITOS
+[ 422]        :                                       
+[ 423]    0686: 5A                                    POP DX
+[ 424]    0687: 59                                    POP CX
+[ 425]    0688: 5B                                    POP BX
+[ 426]    0689: 58                                    POP AX
+[ 427]    068A: C3                                    RET
+[ 428]        :                                       IMPRIMIR_NUMERO ENDP
+[ 429]        :                                       
+[ 430]    068B:                                       REINICIAR_JUEGO PROC
+[ 431]    068B: 50                                    PUSH AX
+[ 432]    068C: 53                                    PUSH BX
+[ 433]    068D: 51                                    PUSH CX
 [ 434]        :                                       
-[ 435]    076A:                                       FILA_BLOQUES:
-[ 436]    076A: 80 FE 11                              CMP DH, 17          ; 15 filas (2 a 16)
-[ 437]    076D: 7D 27                                 JGE FIN_DIBUJAR_BLOQUES
+[ 435]    068E: C6 06 00 00 23                        MOV paleta_x, 35
+[ 436]    0693: C6 06 02 00 23                        MOV paleta_x_anterior, 35
+[ 437]    0698: C6 06 01 00 17                        MOV paleta_y, 23
 [ 438]        :                                       
-[ 439]    076F: B2 02                                 MOV DL, 2
-[ 440]    0771: B1 00                                 MOV CL, 0
-[ 441]        :                                       
-[ 442]    0773:                                       COLUMNA_BLOQUES:
-[ 443]    0773: 80 F9 19                              CMP CL, 25          ; 25 columnas
-[ 444]    0776: 7D 1A                                 JGE SIGUIENTE_FILA_BLOQUES
-[ 445]        :                                       
-[ 446]    0778: 8A 47 08                              MOV AL, bloques[BX]
-[ 447]    077B: 3C 00                                 CMP AL, 0
-[ 448]    077D: 74 0B                                 JE SALTAR_BLOQUE
-[ 449]        :                                       
-[ 450]    077F: 51                                    PUSH CX
-[ 451]    0780: E8 B9 FF                              CALL MOVER_CURSOR
-[ 452]    0783: B4 02                                 MOV AH, 02h
-[ 453]    0785: B2 23                                 MOV DL, '#'
-[ 454]    0787: CD 21                                 INT 21h
-[ 455]    0789: 59                                    POP CX
+[ 439]    069D: C6 06 04 00 28                        MOV pelota_x, 40
+[ 440]    06A2: C6 06 05 00 12                        MOV pelota_y, 18
+[ 441]    06A7: C6 06 06 00 01                        MOV pelota_dx, 1
+[ 442]    06AC: C6 06 07 00 FF                        MOV pelota_dy, 255
+[ 443]        :                                       
+[ 444]    06B1: B9 A0 00                              MOV CX, 160
+[ 445]    06B4: 33 DB                                 XOR BX, BX
+[ 446]        :                                       
+[ 447]    06B6:                                       REINICIAR_BLOQUES_LOOP:
+[ 448]    06B6: C6 47 08 01                           MOV bloques[BX], 1
+[ 449]    06BA: 43                                    INC BX
+[ 450]    06BB: E2 F9                                 LOOP REINICIAR_BLOQUES_LOOP
+[ 451]        :                                       
+[ 452]    06BD: C7 06 A8 00 A0 00                     MOV bloques_restantes, 160
+[ 453]    06C3: C7 06 AA 00 00 00                     MOV puntos, 0
+[ 454]    06C9: C6 06 3A 03 01                        MOV juego_activo, 1
+[ 455]    06CE: C6 06 3B 03 00                        MOV frame_counter, 0
 [ 456]        :                                       
-[ 457]    078A:                                       SALTAR_BLOQUE:
-[ 458]    078A: 43                                    INC BX
-[ 459]    078B: FE C1                                 INC CL
-[ 460]    078D: 80 C2 03                              ADD DL, 3           ; Espaciado de 3 caracteres
-[ 461]    0790: EB E1                                 JMP COLUMNA_BLOQUES
+[ 457]    06D3: 59                                    POP CX
+[ 458]    06D4: 5B                                    POP BX
+[ 459]    06D5: 58                                    POP AX
+[ 460]    06D6: C3                                    RET
+[ 461]        :                                       REINICIAR_JUEGO ENDP
 [ 462]        :                                       
-[ 463]    0792:                                       SIGUIENTE_FILA_BLOQUES:
-[ 464]    0792: FE C6                                 INC DH
-[ 465]    0794: EB D4                                 JMP FILA_BLOQUES
-[ 466]        :                                       
-[ 467]    0796:                                       FIN_DIBUJAR_BLOQUES:
-[ 468]    0796: 5A                                    POP DX
-[ 469]    0797: 59                                    POP CX
-[ 470]    0798: 5B                                    POP BX
-[ 471]    0799: 58                                    POP AX
-[ 472]    079A: C3                                    RET
-[ 473]        :                                       DIBUJAR_BLOQUES ENDP
-[ 474]        :                                       
-[ 475]    079B:                                       DIBUJAR_PALETA PROC
-[ 476]    079B: 50                                    PUSH AX
-[ 477]    079C: 51                                    PUSH CX
-[ 478]    079D: 52                                    PUSH DX
-[ 479]        :                                       
-[ 480]    079E: 8A 36 01 00                           MOV DH, paleta_y
-[ 481]    07A2: 8A 16 00 00                           MOV DL, paleta_x
-[ 482]    07A6: 32 ED                                 XOR CH, CH
-[ 483]    07A8: 8A 0E 03 00                           MOV CL, paleta_ancho
-[ 484]        :                                       
-[ 485]    07AC:                                       LOOP_PALETA:
-[ 486]    07AC: 51                                    PUSH CX
-[ 487]    07AD: 52                                    PUSH DX
-[ 488]    07AE: E8 8B FF                              CALL MOVER_CURSOR
-[ 489]    07B1: B4 02                                 MOV AH, 02h
-[ 490]    07B3: B2 3D                                 MOV DL, '='
-[ 491]    07B5: CD 21                                 INT 21h
-[ 492]    07B7: 5A                                    POP DX
-[ 493]    07B8: 59                                    POP CX
-[ 494]        :                                       
-[ 495]    07B9: FE C2                                 INC DL
-[ 496]    07BB: E2 EF                                 LOOP LOOP_PALETA
-[ 497]        :                                       
-[ 498]    07BD: 5A                                    POP DX
-[ 499]    07BE: 59                                    POP CX
-[ 500]    07BF: 58                                    POP AX
-[ 501]    07C0: C3                                    RET
-[ 502]        :                                       DIBUJAR_PALETA ENDP
+[ 463]    06D7:                                       LIMPIAR_PANTALLA PROC
+[ 464]    06D7: 50                                    PUSH AX
+[ 465]    06D8: B4 00                                 MOV AH, 00h
+[ 466]    06DA: B0 03                                 MOV AL, 03h
+[ 467]    06DC: CD 10                                 INT 10h
+[ 468]    06DE: 58                                    POP AX
+[ 469]    06DF: C3                                    RET
+[ 470]        :                                       LIMPIAR_PANTALLA ENDP
+[ 471]        :                                       
+[ 472]    06E0:                                       MOVER_CURSOR PROC
+[ 473]    06E0: 50                                    PUSH AX
+[ 474]    06E1: 53                                    PUSH BX
+[ 475]    06E2: B4 02                                 MOV AH, 02h
+[ 476]    06E4: B7 00                                 MOV BH, 0
+[ 477]    06E6: CD 10                                 INT 10h
+[ 478]    06E8: 5B                                    POP BX
+[ 479]    06E9: 58                                    POP AX
+[ 480]    06EA: C3                                    RET
+[ 481]        :                                       MOVER_CURSOR ENDP
+[ 482]        :                                       
+[ 483]    06EB:                                       DIBUJAR_BLOQUES PROC
+[ 484]    06EB: 50                                    PUSH AX
+[ 485]    06EC: 53                                    PUSH BX
+[ 486]    06ED: 51                                    PUSH CX
+[ 487]    06EE: 52                                    PUSH DX
+[ 488]    06EF: 56                                    PUSH SI
+[ 489]        :                                       
+[ 490]    06F0: 33 DB                                 XOR BX, BX
+[ 491]    06F2: B6 02                                 MOV DH, 2
+[ 492]        :                                       
+[ 493]    06F4:                                       FILA_BLOQUES:
+[ 494]    06F4: 80 FE 0A                              CMP DH, 10
+[ 495]    06F7: 7D 39                                 JGE FIN_DIBUJAR_BLOQUES
+[ 496]        :                                       
+[ 497]    06F9: B2 02                                 MOV DL, 2
+[ 498]    06FB: B1 00                                 MOV CL, 0
+[ 499]        :                                       
+[ 500]    06FD:                                       COLUMNA_BLOQUES:
+[ 501]    06FD: 80 F9 14                              CMP CL, 20
+[ 502]    0700: 7D 29                                 JGE SIGUIENTE_FILA_BLOQUES
 [ 503]        :                                       
-[ 504]    07C1:                                       BORRAR_PALETA_ANTERIOR PROC
-[ 505]    07C1: 50                                    PUSH AX
-[ 506]    07C2: 51                                    PUSH CX
-[ 507]    07C3: 52                                    PUSH DX
-[ 508]        :                                       
-[ 509]    07C4: 8A 36 01 00                           MOV DH, paleta_y
-[ 510]    07C8: 8A 16 02 00                           MOV DL, paleta_x_anterior
-[ 511]    07CC: 32 ED                                 XOR CH, CH
-[ 512]    07CE: 8A 0E 03 00                           MOV CL, paleta_ancho
-[ 513]        :                                       
-[ 514]    07D2:                                       LOOP_BORRAR_PALETA:
-[ 515]    07D2: 51                                    PUSH CX
-[ 516]    07D3: 52                                    PUSH DX
-[ 517]    07D4: E8 65 FF                              CALL MOVER_CURSOR
-[ 518]    07D7: B4 02                                 MOV AH, 02h
-[ 519]    07D9: B2 20                                 MOV DL, ' '
-[ 520]    07DB: CD 21                                 INT 21h
-[ 521]    07DD: 5A                                    POP DX
-[ 522]    07DE: 59                                    POP CX
-[ 523]        :                                       
-[ 524]    07DF: FE C2                                 INC DL
-[ 525]    07E1: E2 EF                                 LOOP LOOP_BORRAR_PALETA
-[ 526]        :                                       
-[ 527]    07E3: 5A                                    POP DX
-[ 528]    07E4: 59                                    POP CX
-[ 529]    07E5: 58                                    POP AX
-[ 530]    07E6: C3                                    RET
-[ 531]        :                                       BORRAR_PALETA_ANTERIOR ENDP
-[ 532]        :                                       
-[ 533]    07E7:                                       DIBUJAR_PELOTA PROC
-[ 534]    07E7: 50                                    PUSH AX
-[ 535]    07E8: 52                                    PUSH DX
-[ 536]    07E9: 8A 36 05 00                           MOV DH, pelota_y
-[ 537]    07ED: 8A 16 04 00                           MOV DL, pelota_x
-[ 538]    07F1: E8 48 FF                              CALL MOVER_CURSOR
-[ 539]        :                                       
-[ 540]    07F4: B4 02                                 MOV AH, 02h
-[ 541]    07F6: B2 6F                                 MOV DL, 'o'
-[ 542]    07F8: CD 21                                 INT 21h
-[ 543]    07FA: 5A                                    POP DX
-[ 544]    07FB: 58                                    POP AX
-[ 545]    07FC: C3                                    RET
-[ 546]        :                                       DIBUJAR_PELOTA ENDP
-[ 547]        :                                       
-[ 548]    07FD:                                       BORRAR_PELOTA PROC
-[ 549]    07FD: 50                                    PUSH AX
-[ 550]    07FE: 52                                    PUSH DX
-[ 551]    07FF: 8A 36 05 00                           MOV DH, pelota_y
-[ 552]    0803: 8A 16 04 00                           MOV DL, pelota_x
-[ 553]    0807: E8 32 FF                              CALL MOVER_CURSOR
-[ 554]        :                                       
-[ 555]    080A: B4 02                                 MOV AH, 02h
-[ 556]    080C: B2 20                                 MOV DL, ' '
-[ 557]    080E: CD 21                                 INT 21h
-[ 558]    0810: 5A                                    POP DX
-[ 559]    0811: 58                                    POP AX
-[ 560]    0812: C3                                    RET
-[ 561]        :                                       BORRAR_PELOTA ENDP
-[ 562]        :                                       
-[ 563]    0813:                                       MOVER_PELOTA PROC
-[ 564]    0813: 50                                    PUSH AX
-[ 565]    0814: 53                                    PUSH BX
-[ 566]    0815: 51                                    PUSH CX
-[ 567]        :                                       
-[ 568]        :                                       ; Mover en X
-[ 569]    0816: A0 04 00                              MOV AL, pelota_x
-[ 570]    0819: 8A 1E 06 00                           MOV BL, pelota_dx
-[ 571]    081D: 02 C3                                 ADD AL, BL
-[ 572]    081F: A2 04 00                              MOV pelota_x, AL
-[ 573]        :                                       
-[ 574]        :                                       ; Mover en Y
-[ 575]    0822: A0 05 00                              MOV AL, pelota_y
-[ 576]    0825: 8A 1E 07 00                           MOV BL, pelota_dy
-[ 577]    0829: 02 C3                                 ADD AL, BL
-[ 578]    082B: A2 05 00                              MOV pelota_y, AL
-[ 579]        :                                       
-[ 580]        :                                       ; Colisión paredes laterales
-[ 581]    082E: A0 04 00                              MOV AL, pelota_x
-[ 582]    0831: 3C 01                                 CMP AL, 1
-[ 583]    0833: 7E 06                                 JLE REBOTAR_X
-[ 584]    0835: 3C 4E                                 CMP AL, 78
-[ 585]    0837: 7D 02                                 JGE REBOTAR_X
-[ 586]    0839: EB 14                                 JMP CHECK_Y
-[ 587]        :                                       
-[ 588]    083B:                                       REBOTAR_X:
-[ 589]    083B: A0 06 00                              MOV AL, pelota_dx
-[ 590]    083E: F6 D8                                 NEG AL
-[ 591]    0840: A2 06 00                              MOV pelota_dx, AL
-[ 592]        :                                       ; Ajustar posición
-[ 593]    0843: A0 04 00                              MOV AL, pelota_x
-[ 594]    0846: 8A 1E 06 00                           MOV BL, pelota_dx
-[ 595]    084A: 02 C3                                 ADD AL, BL
-[ 596]    084C: A2 04 00                              MOV pelota_x, AL
-[ 597]        :                                       
-[ 598]    084F:                                       CHECK_Y:
-[ 599]        :                                       ; Colisión techo
-[ 600]    084F: A0 05 00                              MOV AL, pelota_y
-[ 601]    0852: 3C 01                                 CMP AL, 1
-[ 602]    0854: 7E 27                                 JLE REBOTAR_Y_UP
-[ 603]        :                                       
-[ 604]        :                                       ; Colisión paleta
-[ 605]    0856: A0 05 00                              MOV AL, pelota_y
-[ 606]    0859: 8A 1E 01 00                           MOV BL, paleta_y
-[ 607]    085D: 3A C3                                 CMP AL, BL
-[ 608]    085F: 75 30                                 JNE CHECK_BLOQUES
-[ 609]        :                                       
-[ 610]    0861: A0 04 00                              MOV AL, pelota_x
-[ 611]    0864: 8A 1E 00 00                           MOV BL, paleta_x
-[ 612]    0868: 3A C3                                 CMP AL, BL
-[ 613]    086A: 7C 25                                 JL CHECK_BLOQUES
-[ 614]        :                                       
-[ 615]    086C: A0 04 00                              MOV AL, pelota_x
-[ 616]    086F: 8A 1E 00 00                           MOV BL, paleta_x
-[ 617]    0873: 8A 0E 03 00                           MOV CL, paleta_ancho
-[ 618]    0877: 02 D9                                 ADD BL, CL
-[ 619]    0879: 3A C3                                 CMP AL, BL
-[ 620]    087B: 7D 14                                 JGE CHECK_BLOQUES
-[ 621]        :                                       
-[ 622]    087D:                                       REBOTAR_Y_UP:
-[ 623]    087D: A0 07 00                              MOV AL, pelota_dy
-[ 624]    0880: F6 D8                                 NEG AL
-[ 625]    0882: A2 07 00                              MOV pelota_dy, AL
-[ 626]        :                                       ; Ajustar posición
-[ 627]    0885: A0 05 00                              MOV AL, pelota_y
-[ 628]    0888: 8A 1E 07 00                           MOV BL, pelota_dy
-[ 629]    088C: 02 C3                                 ADD AL, BL
-[ 630]    088E: A2 05 00                              MOV pelota_y, AL
-[ 631]        :                                       
-[ 632]    0891:                                       CHECK_BLOQUES:
-[ 633]    0891: E8 14 00                              CALL VERIFICAR_COLISION_BLOQUES
-[ 634]        :                                       
-[ 635]        :                                       ; Verificar si perdió
-[ 636]    0894: A0 05 00                              MOV AL, pelota_y
-[ 637]    0897: 3C 18                                 CMP AL, 24
-[ 638]    0899: 7D 04                                 JGE PERDER
-[ 639]        :                                       
-[ 640]    089B: 59                                    POP CX
-[ 641]    089C: 5B                                    POP BX
-[ 642]    089D: 58                                    POP AX
-[ 643]    089E: C3                                    RET
-[ 644]        :                                       
-[ 645]    089F:                                       PERDER:
-[ 646]    089F: C6 06 14 04 00                        MOV juego_activo, 0
-[ 647]    08A4: 59                                    POP CX
-[ 648]    08A5: 5B                                    POP BX
-[ 649]    08A6: 58                                    POP AX
-[ 650]    08A7: C3                                    RET
-[ 651]        :                                       MOVER_PELOTA ENDP
-[ 652]        :                                       
-[ 653]    08A8:                                       VERIFICAR_COLISION_BLOQUES PROC
-[ 654]    08A8: 50                                    PUSH AX
-[ 655]    08A9: 53                                    PUSH BX
-[ 656]    08AA: 51                                    PUSH CX
-[ 657]    08AB: 52                                    PUSH DX
-[ 658]        :                                       
-[ 659]        :                                       ; Verificar si está en rango de bloques
-[ 660]    08AC: A0 05 00                              MOV AL, pelota_y
-[ 661]    08AF: 3C 02                                 CMP AL, 2
-[ 662]    08B1: 7C 72                                 JL FIN_VERIFICAR
-[ 663]    08B3: 3C 11                                 CMP AL, 17
-[ 664]    08B5: 7D 6E                                 JGE FIN_VERIFICAR
-[ 665]        :                                       
-[ 666]    08B7: A0 04 00                              MOV AL, pelota_x
-[ 667]    08BA: 3C 02                                 CMP AL, 2
-[ 668]    08BC: 7C 67                                 JL FIN_VERIFICAR
-[ 669]    08BE: 3C 4D                                 CMP AL, 77
-[ 670]    08C0: 7D 63                                 JGE FIN_VERIFICAR
-[ 671]        :                                       
-[ 672]        :                                       ; Calcular fila: (y - 2)
-[ 673]    08C2: A0 05 00                              MOV AL, pelota_y
-[ 674]    08C5: 2C 02                                 SUB AL, 2
-[ 675]    08C7: B3 19                                 MOV BL, 25           ; 25 columnas por fila
-[ 676]    08C9: F6 E3                                 MUL BL
-[ 677]    08CB: 8B D8                                 MOV BX, AX           ; BX = índice base de la fila
-[ 678]        :                                       
-[ 679]        :                                       ; Calcular columna: (x - 2) / 3
-[ 680]    08CD: A0 04 00                              MOV AL, pelota_x
-[ 681]    08D0: 2C 02                                 SUB AL, 2
-[ 682]    08D2: B1 03                                 MOV CL, 3
-[ 683]    08D4: 32 E4                                 XOR AH, AH
-[ 684]    08D6: F6 F1                                 DIV CL
-[ 685]        :                                       
-[ 686]        :                                       ; Verificar que no exceda columnas
-[ 687]    08D8: 3C 19                                 CMP AL, 25
-[ 688]    08DA: 73 49                                 JAE FIN_VERIFICAR
-[ 689]        :                                       
-[ 690]        :                                       ; BX = fila * 25 + columna
-[ 691]    08DC: 32 E4                                 XOR AH, AH
-[ 692]    08DE: 03 D8                                 ADD BX, AX
+[ 504]    0702: 8A 47 08                              MOV AL, bloques[BX]
+[ 505]    0705: 3C 00                                 CMP AL, 0
+[ 506]    0707: 74 17                                 JE SALTAR_BLOQUE
+[ 507]        :                                       
+[ 508]        :                                       ; Guardar registros importantes
+[ 509]    0709: 53                                    PUSH BX
+[ 510]    070A: 51                                    PUSH CX
+[ 511]    070B: 52                                    PUSH DX
+[ 512]        :                                       
+[ 513]        :                                       ; Posicionar cursor
+[ 514]    070C: E8 D1 FF                              CALL MOVER_CURSOR
+[ 515]        :                                       
+[ 516]        :                                       ; Dibujar 3 caracteres del bloque
+[ 517]    070F: B4 02                                 MOV AH, 02h
+[ 518]    0711: B2 B2                                 MOV DL, 178  ; Bloque medio
+[ 519]    0713: CD 21                                 INT 21h
+[ 520]    0715: B2 B1                                 MOV DL, 177  ; Bloque ligero
+[ 521]    0717: CD 21                                 INT 21h
+[ 522]    0719: B2 B2                                 MOV DL, 178
+[ 523]    071B: CD 21                                 INT 21h
+[ 524]        :                                       
+[ 525]        :                                       ; Restaurar registros
+[ 526]    071D: 5A                                    POP DX
+[ 527]    071E: 59                                    POP CX
+[ 528]    071F: 5B                                    POP BX
+[ 529]        :                                       
+[ 530]    0720:                                       SALTAR_BLOQUE:
+[ 531]    0720: 43                                    INC BX
+[ 532]    0721: FE C1                                 INC CL
+[ 533]    0723: 80 C2 04                              ADD DL, 4
+[ 534]    0726: 80 F9 14                              CMP CL, 20
+[ 535]    0729: 7C D2                                 JL COLUMNA_BLOQUES
+[ 536]        :                                       
+[ 537]    072B:                                       SIGUIENTE_FILA_BLOQUES:
+[ 538]    072B: FE C6                                 INC DH
+[ 539]    072D: 80 FE 0A                              CMP DH, 10
+[ 540]    0730: 7C C2                                 JL FILA_BLOQUES
+[ 541]        :                                       
+[ 542]    0732:                                       FIN_DIBUJAR_BLOQUES:
+[ 543]    0732: 5E                                    POP SI
+[ 544]    0733: 5A                                    POP DX
+[ 545]    0734: 59                                    POP CX
+[ 546]    0735: 5B                                    POP BX
+[ 547]    0736: 58                                    POP AX
+[ 548]    0737: C3                                    RET
+[ 549]        :                                       DIBUJAR_BLOQUES ENDP
+[ 550]        :                                       
+[ 551]    0738:                                       DIBUJAR_PALETA PROC
+[ 552]    0738: 50                                    PUSH AX
+[ 553]    0739: 51                                    PUSH CX
+[ 554]    073A: 52                                    PUSH DX
+[ 555]        :                                       
+[ 556]    073B: 8A 36 01 00                           MOV DH, paleta_y
+[ 557]    073F: 8A 16 00 00                           MOV DL, paleta_x
+[ 558]    0743: 32 ED                                 XOR CH, CH
+[ 559]    0745: 8A 0E 03 00                           MOV CL, paleta_ancho
+[ 560]        :                                       
+[ 561]    0749: E8 94 FF                              CALL MOVER_CURSOR
+[ 562]    074C: B4 02                                 MOV AH, 02h
+[ 563]    074E: B2 DC                                 MOV DL, 220  ; Borde superior
+[ 564]    0750: CD 21                                 INT 21h
+[ 565]        :                                       
+[ 566]    0752:                                       LOOP_PALETA:
+[ 567]    0752: B4 02                                 MOV AH, 02h
+[ 568]    0754: B2 DF                                 MOV DL, 223  ; Borde inferior
+[ 569]    0756: CD 21                                 INT 21h
+[ 570]    0758: E2 F8                                 LOOP LOOP_PALETA
+[ 571]        :                                       
+[ 572]    075A: B4 02                                 MOV AH, 02h
+[ 573]    075C: B2 DC                                 MOV DL, 220
+[ 574]    075E: CD 21                                 INT 21h
+[ 575]        :                                       
+[ 576]    0760: 5A                                    POP DX
+[ 577]    0761: 59                                    POP CX
+[ 578]    0762: 58                                    POP AX
+[ 579]    0763: C3                                    RET
+[ 580]        :                                       DIBUJAR_PALETA ENDP
+[ 581]        :                                       
+[ 582]    0764:                                       BORRAR_PALETA_ANTERIOR PROC
+[ 583]    0764: 50                                    PUSH AX
+[ 584]    0765: 51                                    PUSH CX
+[ 585]    0766: 52                                    PUSH DX
+[ 586]        :                                       
+[ 587]    0767: 8A 36 01 00                           MOV DH, paleta_y
+[ 588]    076B: 8A 16 02 00                           MOV DL, paleta_x_anterior
+[ 589]    076F: 32 ED                                 XOR CH, CH
+[ 590]    0771: 8A 0E 03 00                           MOV CL, paleta_ancho
+[ 591]    0775: 80 C1 02                              ADD CL, 2
+[ 592]        :                                       
+[ 593]    0778:                                       LOOP_BORRAR_PALETA:
+[ 594]    0778: 51                                    PUSH CX
+[ 595]    0779: 52                                    PUSH DX
+[ 596]    077A: E8 63 FF                              CALL MOVER_CURSOR
+[ 597]    077D: B4 02                                 MOV AH, 02h
+[ 598]    077F: B2 20                                 MOV DL, ' '
+[ 599]    0781: CD 21                                 INT 21h
+[ 600]    0783: 5A                                    POP DX
+[ 601]    0784: 59                                    POP CX
+[ 602]        :                                       
+[ 603]    0785: FE C2                                 INC DL
+[ 604]    0787: E2 EF                                 LOOP LOOP_BORRAR_PALETA
+[ 605]        :                                       
+[ 606]    0789: 5A                                    POP DX
+[ 607]    078A: 59                                    POP CX
+[ 608]    078B: 58                                    POP AX
+[ 609]    078C: C3                                    RET
+[ 610]        :                                       BORRAR_PALETA_ANTERIOR ENDP
+[ 611]        :                                       
+[ 612]    078D:                                       DIBUJAR_PELOTA PROC
+[ 613]    078D: 50                                    PUSH AX
+[ 614]    078E: 52                                    PUSH DX
+[ 615]    078F: 8A 36 05 00                           MOV DH, pelota_y
+[ 616]    0793: 8A 16 04 00                           MOV DL, pelota_x
+[ 617]    0797: E8 46 FF                              CALL MOVER_CURSOR
+[ 618]        :                                       
+[ 619]    079A: B4 02                                 MOV AH, 02h
+[ 620]    079C: B2 FE                                 MOV DL, 254  ; Círculo pequeño
+[ 621]    079E: CD 21                                 INT 21h
+[ 622]    07A0: 5A                                    POP DX
+[ 623]    07A1: 58                                    POP AX
+[ 624]    07A2: C3                                    RET
+[ 625]        :                                       DIBUJAR_PELOTA ENDP
+[ 626]        :                                       
+[ 627]    07A3:                                       BORRAR_PELOTA PROC
+[ 628]    07A3: 50                                    PUSH AX
+[ 629]    07A4: 52                                    PUSH DX
+[ 630]    07A5: 8A 36 05 00                           MOV DH, pelota_y
+[ 631]    07A9: 8A 16 04 00                           MOV DL, pelota_x
+[ 632]    07AD: E8 30 FF                              CALL MOVER_CURSOR
+[ 633]        :                                       
+[ 634]    07B0: B4 02                                 MOV AH, 02h
+[ 635]    07B2: B2 20                                 MOV DL, ' '
+[ 636]    07B4: CD 21                                 INT 21h
+[ 637]    07B6: 5A                                    POP DX
+[ 638]    07B7: 58                                    POP AX
+[ 639]    07B8: C3                                    RET
+[ 640]        :                                       BORRAR_PELOTA ENDP
+[ 641]        :                                       
+[ 642]    07B9:                                       MOVER_PELOTA PROC
+[ 643]    07B9: 50                                    PUSH AX
+[ 644]    07BA: 53                                    PUSH BX
+[ 645]    07BB: 51                                    PUSH CX
+[ 646]        :                                       
+[ 647]    07BC: A0 04 00                              MOV AL, pelota_x
+[ 648]    07BF: 8A 1E 06 00                           MOV BL, pelota_dx
+[ 649]    07C3: 02 C3                                 ADD AL, BL
+[ 650]    07C5: A2 04 00                              MOV pelota_x, AL
+[ 651]        :                                       
+[ 652]    07C8: A0 05 00                              MOV AL, pelota_y
+[ 653]    07CB: 8A 1E 07 00                           MOV BL, pelota_dy
+[ 654]    07CF: 02 C3                                 ADD AL, BL
+[ 655]    07D1: A2 05 00                              MOV pelota_y, AL
+[ 656]        :                                       
+[ 657]        :                                       ; Colisión pared izquierda
+[ 658]    07D4: A0 04 00                              MOV AL, pelota_x
+[ 659]    07D7: 3C 01                                 CMP AL, 1
+[ 660]    07D9: 7E 09                                 JLE REBOTAR_X
+[ 661]        :                                       
+[ 662]        :                                       ; Colisión pared derecha
+[ 663]    07DB: A0 04 00                              MOV AL, pelota_x
+[ 664]    07DE: 3C 4E                                 CMP AL, 78
+[ 665]    07E0: 7D 02                                 JGE REBOTAR_X
+[ 666]    07E2: EB 14                                 JMP CHECK_Y
+[ 667]        :                                       
+[ 668]    07E4:                                       REBOTAR_X:
+[ 669]    07E4: A0 06 00                              MOV AL, pelota_dx
+[ 670]    07E7: F6 D8                                 NEG AL
+[ 671]    07E9: A2 06 00                              MOV pelota_dx, AL
+[ 672]    07EC: A0 04 00                              MOV AL, pelota_x
+[ 673]    07EF: 8A 1E 06 00                           MOV BL, pelota_dx
+[ 674]    07F3: 02 C3                                 ADD AL, BL
+[ 675]    07F5: A2 04 00                              MOV pelota_x, AL
+[ 676]        :                                       
+[ 677]    07F8:                                       CHECK_Y:
+[ 678]        :                                       ; Colisión techo
+[ 679]    07F8: A0 05 00                              MOV AL, pelota_y
+[ 680]    07FB: 3C 01                                 CMP AL, 1
+[ 681]    07FD: 7E 2A                                 JLE REBOTAR_Y_UP
+[ 682]        :                                       
+[ 683]        :                                       ; Colisión paleta
+[ 684]    07FF: A0 05 00                              MOV AL, pelota_y
+[ 685]    0802: 8A 1E 01 00                           MOV BL, paleta_y
+[ 686]    0806: 3A C3                                 CMP AL, BL
+[ 687]    0808: 75 33                                 JNE CHECK_BLOQUES
+[ 688]        :                                       
+[ 689]    080A: A0 04 00                              MOV AL, pelota_x
+[ 690]    080D: 8A 1E 00 00                           MOV BL, paleta_x
+[ 691]    0811: 3A C3                                 CMP AL, BL
+[ 692]    0813: 7C 28                                 JL CHECK_BLOQUES
 [ 693]        :                                       
-[ 694]        :                                       ; Verificar límite del array
-[ 695]    08E0: 81 FB 77 01                           CMP BX, 375
-[ 696]    08E4: 73 3F                                 JAE FIN_VERIFICAR
-[ 697]        :                                       
-[ 698]        :                                       ; Verificar si el bloque existe
-[ 699]    08E6: 8A 47 08                              MOV AL, bloques[BX]
-[ 700]    08E9: 3C 00                                 CMP AL, 0
-[ 701]    08EB: 74 38                                 JE FIN_VERIFICAR
-[ 702]        :                                       
-[ 703]        :                                       ; Destruir bloque
-[ 704]    08ED: C6 47 08 00                           MOV bloques[BX], 0
-[ 705]    08F1: FF 0E 7F 01                           DEC bloques_restantes
-[ 706]        :                                       
-[ 707]        :                                       ; Borrar el bloque de la pantalla
-[ 708]    08F5: 53                                    PUSH BX
-[ 709]        :                                       ; Calcular posición en pantalla
-[ 710]    08F6: 8B C3                                 MOV AX, BX
-[ 711]    08F8: B3 19                                 MOV BL, 25
-[ 712]    08FA: F6 F3                                 DIV BL              ; AL = fila, AH = columna
+[ 694]    0815: A0 04 00                              MOV AL, pelota_x
+[ 695]    0818: 8A 1E 00 00                           MOV BL, paleta_x
+[ 696]    081C: 8A 0E 03 00                           MOV CL, paleta_ancho
+[ 697]    0820: 80 C1 02                              ADD CL, 2
+[ 698]    0823: 02 D9                                 ADD BL, CL
+[ 699]    0825: 3A C3                                 CMP AL, BL
+[ 700]    0827: 7D 14                                 JGE CHECK_BLOQUES
+[ 701]        :                                       
+[ 702]    0829:                                       REBOTAR_Y_UP:
+[ 703]    0829: A0 07 00                              MOV AL, pelota_dy
+[ 704]    082C: F6 D8                                 NEG AL
+[ 705]    082E: A2 07 00                              MOV pelota_dy, AL
+[ 706]    0831: A0 05 00                              MOV AL, pelota_y
+[ 707]    0834: 8A 1E 07 00                           MOV BL, pelota_dy
+[ 708]    0838: 02 C3                                 ADD AL, BL
+[ 709]    083A: A2 05 00                              MOV pelota_y, AL
+[ 710]        :                                       
+[ 711]    083D:                                       CHECK_BLOQUES:
+[ 712]    083D: E8 14 00                              CALL VERIFICAR_COLISION_BLOQUES
 [ 713]        :                                       
-[ 714]        :                                       ; DH = fila + 2
-[ 715]    08FC: 8A F0                                 MOV DH, AL
-[ 716]    08FE: 80 C6 02                              ADD DH, 2
+[ 714]    0840: A0 05 00                              MOV AL, pelota_y
+[ 715]    0843: 3C 18                                 CMP AL, 24
+[ 716]    0845: 7D 04                                 JGE PERDER
 [ 717]        :                                       
-[ 718]        :                                       ; DL = columna * 3 + 2
-[ 719]    0901: 8A D4                                 MOV DL, AH
-[ 720]    0903: B0 03                                 MOV AL, 3
-[ 721]    0905: F6 E2                                 MUL DL
-[ 722]    0907: 04 02                                 ADD AL, 2
-[ 723]    0909: 8A D0                                 MOV DL, AL
-[ 724]        :                                       
-[ 725]    090B: E8 2E FE                              CALL MOVER_CURSOR
-[ 726]    090E: B4 02                                 MOV AH, 02h
-[ 727]    0910: B2 20                                 MOV DL, ' '
-[ 728]    0912: CD 21                                 INT 21h
-[ 729]    0914: 5B                                    POP BX
+[ 718]    0847: 59                                    POP CX
+[ 719]    0848: 5B                                    POP BX
+[ 720]    0849: 58                                    POP AX
+[ 721]    084A: C3                                    RET
+[ 722]        :                                       
+[ 723]    084B:                                       PERDER:
+[ 724]    084B: C6 06 3A 03 00                        MOV juego_activo, 0
+[ 725]    0850: 59                                    POP CX
+[ 726]    0851: 5B                                    POP BX
+[ 727]    0852: 58                                    POP AX
+[ 728]    0853: C3                                    RET
+[ 729]        :                                       MOVER_PELOTA ENDP
 [ 730]        :                                       
-[ 731]        :                                       ; Rebotar verticalmente
-[ 732]    0915: A0 07 00                              MOV AL, pelota_dy
-[ 733]    0918: F6 D8                                 NEG AL
-[ 734]    091A: A2 07 00                              MOV pelota_dy, AL
-[ 735]        :                                       
-[ 736]        :                                       ; Verificar victoria
-[ 737]    091D: A1 7F 01                              MOV AX, bloques_restantes
-[ 738]    0920: 3D 00 00                              CMP AX, 0
-[ 739]    0923: 74 05                                 JE GANAR
-[ 740]        :                                       
-[ 741]    0925:                                       FIN_VERIFICAR:
-[ 742]    0925: 5A                                    POP DX
-[ 743]    0926: 59                                    POP CX
-[ 744]    0927: 5B                                    POP BX
-[ 745]    0928: 58                                    POP AX
-[ 746]    0929: C3                                    RET
-[ 747]        :                                       
-[ 748]    092A:                                       GANAR:
-[ 749]    092A: C6 06 14 04 00                        MOV juego_activo, 0
-[ 750]    092F: 5A                                    POP DX
-[ 751]    0930: 59                                    POP CX
-[ 752]    0931: 5B                                    POP BX
-[ 753]    0932: 58                                    POP AX
-[ 754]    0933: C3                                    RET
-[ 755]        :                                       VERIFICAR_COLISION_BLOQUES ENDP
-[ 756]        :                                       
-[ 757]    0934:                                       DELAY_GAME PROC
-[ 758]    0934: 51                                    PUSH CX
-[ 759]    0935: 52                                    PUSH DX
-[ 760]        :                                       
-[ 761]    0936: B9 01 00                              MOV CX, 0001h
+[ 731]    0854:                                       VERIFICAR_COLISION_BLOQUES PROC
+[ 732]    0854: 50                                    PUSH AX
+[ 733]    0855: 53                                    PUSH BX
+[ 734]    0856: 51                                    PUSH CX
+[ 735]    0857: 52                                    PUSH DX
+[ 736]        :                                       
+[ 737]    0858: A0 05 00                              MOV AL, pelota_y
+[ 738]    085B: 3C 02                                 CMP AL, 2
+[ 739]    085D: 7C 7F                                 JL FIN_VERIFICAR
+[ 740]    085F: 3C 0A                                 CMP AL, 10
+[ 741]    0861: 7D 7B                                 JGE FIN_VERIFICAR
+[ 742]        :                                       
+[ 743]    0863: A0 04 00                              MOV AL, pelota_x
+[ 744]    0866: 3C 02                                 CMP AL, 2
+[ 745]    0868: 7C 74                                 JL FIN_VERIFICAR
+[ 746]    086A: 3C 4E                                 CMP AL, 78
+[ 747]    086C: 7D 70                                 JGE FIN_VERIFICAR
+[ 748]        :                                       
+[ 749]        :                                       ; Calcular fila
+[ 750]    086E: A0 05 00                              MOV AL, pelota_y
+[ 751]    0871: 2C 02                                 SUB AL, 2
+[ 752]    0873: B3 14                                 MOV BL, 20
+[ 753]    0875: F6 E3                                 MUL BL
+[ 754]    0877: 8B D8                                 MOV BX, AX
+[ 755]        :                                       
+[ 756]        :                                       ; Calcular columna
+[ 757]    0879: A0 04 00                              MOV AL, pelota_x
+[ 758]    087C: 2C 02                                 SUB AL, 2
+[ 759]    087E: B1 04                                 MOV CL, 4
+[ 760]    0880: 32 E4                                 XOR AH, AH
+[ 761]    0882: F6 F1                                 DIV CL
 [ 762]        :                                       
-[ 763]    0939:                                       DELAY_OUTER:
-[ 764]    0939: BA 00 50                              MOV DX, 5000h
-[ 765]    093C:                                       DELAY_INNER:
-[ 766]    093C: 4A                                    DEC DX
-[ 767]    093D: 75 FD                                 JNZ DELAY_INNER
-[ 768]    093F: E2 F8                                 LOOP DELAY_OUTER
-[ 769]        :                                       
-[ 770]    0941: 5A                                    POP DX
-[ 771]    0942: 59                                    POP CX
-[ 772]    0943: C3                                    RET
-[ 773]        :                                       DELAY_GAME ENDP
-[ 774]        :                                       
-[ 775]        :                                       END MAIN
-[ 776]        :                                       
+[ 763]    0884: 3C 14                                 CMP AL, 20
+[ 764]    0886: 73 56                                 JAE FIN_VERIFICAR
+[ 765]        :                                       
+[ 766]    0888: 32 E4                                 XOR AH, AH
+[ 767]    088A: 03 D8                                 ADD BX, AX
+[ 768]        :                                       
+[ 769]    088C: 81 FB A0 00                           CMP BX, 160
+[ 770]    0890: 73 4C                                 JAE FIN_VERIFICAR
+[ 771]        :                                       
+[ 772]    0892: 8A 47 08                              MOV AL, bloques[BX]
+[ 773]    0895: 3C 00                                 CMP AL, 0
+[ 774]    0897: 74 45                                 JE FIN_VERIFICAR
+[ 775]        :                                       
+[ 776]        :                                       ; Destruir bloque
+[ 777]    0899: C6 47 08 00                           MOV bloques[BX], 0
+[ 778]    089D: FF 0E A8 00                           DEC bloques_restantes
+[ 779]    08A1: 83 06 AA 00 0A                        ADD puntos, 10
+[ 780]        :                                       
+[ 781]        :                                       ; Borrar el bloque
+[ 782]    08A6: 53                                    PUSH BX
+[ 783]    08A7: 8B C3                                 MOV AX, BX
+[ 784]    08A9: B3 14                                 MOV BL, 20
+[ 785]    08AB: F6 F3                                 DIV BL
+[ 786]        :                                       
+[ 787]    08AD: 8A F0                                 MOV DH, AL
+[ 788]    08AF: 80 C6 02                              ADD DH, 2
+[ 789]        :                                       
+[ 790]    08B2: 8A C4                                 MOV AL, AH
+[ 791]    08B4: B3 04                                 MOV BL, 4
+[ 792]    08B6: F6 E3                                 MUL BL
+[ 793]    08B8: 04 02                                 ADD AL, 2
+[ 794]    08BA: 8A D0                                 MOV DL, AL
+[ 795]        :                                       
+[ 796]    08BC: E8 21 FE                              CALL MOVER_CURSOR
+[ 797]    08BF: B4 02                                 MOV AH, 02h
+[ 798]    08C1: B2 20                                 MOV DL, ' '
+[ 799]    08C3: CD 21                                 INT 21h
+[ 800]    08C5: B2 20                                 MOV DL, ' '
+[ 801]    08C7: CD 21                                 INT 21h
+[ 802]    08C9: B2 20                                 MOV DL, ' '
+[ 803]    08CB: CD 21                                 INT 21h
+[ 804]    08CD: 5B                                    POP BX
+[ 805]        :                                       
+[ 806]        :                                       ; Rebotar
+[ 807]    08CE: A0 07 00                              MOV AL, pelota_dy
+[ 808]    08D1: F6 D8                                 NEG AL
+[ 809]    08D3: A2 07 00                              MOV pelota_dy, AL
+[ 810]        :                                       
+[ 811]    08D6: A1 A8 00                              MOV AX, bloques_restantes
+[ 812]    08D9: 3D 00 00                              CMP AX, 0
+[ 813]    08DC: 74 05                                 JE GANAR
+[ 814]        :                                       
+[ 815]    08DE:                                       FIN_VERIFICAR:
+[ 816]    08DE: 5A                                    POP DX
+[ 817]    08DF: 59                                    POP CX
+[ 818]    08E0: 5B                                    POP BX
+[ 819]    08E1: 58                                    POP AX
+[ 820]    08E2: C3                                    RET
+[ 821]        :                                       
+[ 822]    08E3:                                       GANAR:
+[ 823]    08E3: C6 06 3A 03 00                        MOV juego_activo, 0
+[ 824]    08E8: 5A                                    POP DX
+[ 825]    08E9: 59                                    POP CX
+[ 826]    08EA: 5B                                    POP BX
+[ 827]    08EB: 58                                    POP AX
+[ 828]    08EC: C3                                    RET
+[ 829]        :                                       VERIFICAR_COLISION_BLOQUES ENDP
+[ 830]        :                                       
+[ 831]    08ED:                                       DELAY_GAME PROC
+[ 832]    08ED: 51                                    PUSH CX
+[ 833]    08EE: 52                                    PUSH DX
+[ 834]        :                                       
+[ 835]    08EF: B9 01 00                              MOV CX, 0001h
+[ 836]        :                                       
+[ 837]    08F2:                                       DELAY_OUTER:
+[ 838]    08F2: BA 00 50                              MOV DX, 5000h
+[ 839]    08F5:                                       DELAY_INNER:
+[ 840]    08F5: 4A                                    DEC DX
+[ 841]    08F6: 75 FD                                 JNZ DELAY_INNER
+[ 842]    08F8: E2 F8                                 LOOP DELAY_OUTER
+[ 843]        :                                       
+[ 844]    08FA: 5A                                    POP DX
+[ 845]    08FB: 59                                    POP CX
+[ 846]    08FC: C3                                    RET
+[ 847]        :                                       DELAY_GAME ENDP
+[ 848]        :                                       
+[ 849]        :                                       END MAIN
+[ 850]        :                                       
  
 ===================================================================================================
  
@@ -870,8 +924,8 @@ EXE HEADER - bytes from 0000 to 01FF inclusive.
 
 0000: 4D      -   exe signature (M)
 0001: 5A      -   exe signature (Z)
-0002: 44      -   bytes on last page (l.byte)
-0003: 01      -   bytes on last page (h.byte)
+0002: FD      -   bytes on last page (l.byte)
+0003: 00      -   bytes on last page (h.byte)
 0004: 06      -   512 byte pages in file (l.byte)
 0005: 00      -   512 byte pages in file (h.byte)
 0006: 01      -   relocations (l.byte)
@@ -886,11 +940,11 @@ EXE HEADER - bytes from 0000 to 01FF inclusive.
 000F: 00      -   SS - stack segment (h.byte)
 0010: 00      -   SP - stack pointer (l.byte)
 0011: 01      -   SP - stack pointer (h.byte)
-0012: E0      -   check sum (l.byte)
-0013: 53      -   check sum (h.byte)
+0012: EC      -   check sum (l.byte)
+0013: 68      -   check sum (h.byte)
 0014: 00      -   IP - instruction pointer (l.byte)
 0015: 00      -   IP - instruction pointer (h.byte)
-0016: 52      -   CS - code segment (l.byte)
+0016: 44      -   CS - code segment (l.byte)
 0017: 00      -   CS - code segment (h.byte)
 0018: 1E      -   relocation table adress (l.byte)
 0019: 00      -   relocation table adress (h.byte)
@@ -900,7 +954,7 @@ EXE HEADER - bytes from 0000 to 01FF inclusive.
 001D: 00      -   signature (h.byte)
 001E: 01      -   relocation table - offset inside segment (l.byte)
 001F: 00      -   relocation table - offset inside segment (h.byte)
-0020: 52      -   relocation table - segment anchor (l.byte)
+0020: 44      -   relocation table - segment anchor (l.byte)
 0021: 00      -   relocation table - segment anchor (h.byte)
 0022 to 01FF  -   reserved relocation area  (00) 
 
