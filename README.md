@@ -5,7 +5,7 @@
 <h1 align = "center">Breakdown</h1>
 
 <p>
-Breakdown es un videojuego desarrollado en <strong>Lenguaje Ensamblador (ASM)</strong> para el procesador <strong>Intel 8086</strong>, ejecutable en el entorno <strong>Emu8086</strong>.
+Breakout es un videojuego desarrollado en <strong>Lenguaje Ensamblador (ASM)</strong> para el procesador <strong>Intel 8086</strong>, ejecutable en el entorno <strong>Emu8086</strong>.
 El proyecto busca demostrar el funcionamiento interno de la arquitectura x86 mediante rutinas gráficas, control de flujo y manejo de interrupciones.
 </p>
 
@@ -82,7 +82,7 @@ El propósito principal es comprender la estructura y funcionamiento de un video
 
 <p>
 Desarrollado por <strong>Benjamín Solano</strong><br>
-Universidad / Curso de Programación en Ensamblador<br>
+Universidad <strong>Nacional de Costa Rica</strong> / Curso de Programación en Ensamblador<br>
 Año: 2025
 </p>
 
