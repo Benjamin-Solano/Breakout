@@ -2,7 +2,7 @@
 
 <img src = "./imgs/breakdownBanner.png" width = "1100">
 
-<h1 align = "center">Breakdown</h1>
+<h1 align = "center">Breakout</h1>
 
 <p>
 Breakout es un videojuego desarrollado en <strong>Lenguaje Ensamblador (ASM)</strong> para el procesador <strong>Intel 8086</strong>, ejecutable en el entorno <strong>Emu8086</strong>.
